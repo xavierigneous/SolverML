@@ -35,7 +35,6 @@ from pandas.api.types import is_string_dtype,is_numeric_dtype
 from collections import defaultdict
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import statsmodels.api as sm
-from io import BytesIO
 # from IPython.display import HTML
 # import AppConfig
 import os, sqlalchemy, random, sys
@@ -64,7 +63,8 @@ from imblearn.over_sampling import SMOTE
 import psycopg2 as pg
 import warnings
 warnings.filterwarnings('ignore')
-############### DB Operations import ###########################
+
+################# DB Operations import ###########################
 abspath = os.path.abspath(__file__)
 working_directory = os.path.dirname(abspath)
 os.chdir(working_directory)
@@ -74,10 +74,17 @@ from db_operations import sql_engine, get_projects, upload_projects, update_proj
     delete_file, get_current_file, get_current_display_file, update_train_file, test_file_upload, get_test_file, update_test_file, \
     get_problem_type, save_models, get_models, save_predictions_file, get_predictions_file, save_target, get_target, \
     save_columns_selected, get_columns_selected, save_leaderboard, get_leaderboard, store_all_operation, store_chart
-############# PLotting Operations import #######################
+############### PLotting Operations import #######################
 from metrics_plot import plot, plot_classification, plot_regression, linear_feat_importance, tree_feat_importance, feat_importance_init
 ############## Modelling Operations import #######################
 from modelling_utilities import fit_ml_algo, fit_ml_algo_predict, roc_auc_score_multiclass, train_test_fit
+################# Tuning Operations import #######################
+from tuning_ops import classify_metric, \
+    rf_regress, xgb_regress, log_regress, knn_regress, svc_regress, dtree_regress, adaboost_regress, gradboost_regress, \
+    rf_classify, xgb_classify, log_classify, knn_classify, svc_classify, dtree_classify, adaboost_classify, gradboost_classify, \
+    class_split, reg_split
+class_cross_valid=['KFold','Stratified Kfold']
+reg_cross_valid=['Kfold','Shuffle Split']
 
 # Create your views here.
 global nrows, temp_file, user_name
@@ -2174,10 +2181,6 @@ def interpret(request):
 
         distribution = plot()
 
-        #algos=list(saved_models['model_name'].values)
-        #model_list = []
-        #[model_list.append(i) for i in algos]
-        #model_list = [{'field': f, 'title': f} for f in model_list]
         result = get_leaderboard(temp_file, problem_type)
 
         distribution = {'distribution': distribution,
@@ -2422,11 +2425,6 @@ def interpret(request):
 
         return render(request, "interpret.html", model_list)
 
-    
-    
-    
-    
-
 
 def classify_metric(Y):
     # Used to detect binary/non-binary classification to choose appropriate scoring
@@ -2434,499 +2432,7 @@ def classify_metric(Y):
         return 'roc_auc'
     else:
         return 'f1_weighted'
-
-
-# -------------Regression-------------------------------------------------------
-#Number of folds
-class_split = {'kfold': KFold(n_splits=3, shuffle=True),
-             'stratifiedk_fold': StratifiedKFold(n_splits=3, shuffle=True)}
-reg_split = {'kfold': KFold(n_splits=3, shuffle=True),
-     'shuffle_split': ShuffleSplit(n_splits=3)}
-def get_split(problem_type,folds):
-    class_split = {'kfold': KFold(n_splits=folds, shuffle=True),
-             'stratifiedk_fold': StratifiedKFold(n_splits=folds, shuffle=True)}
-    reg_split = {'kfold': KFold(n_splits=folds, shuffle=True),
-         'shuffle_split': ShuffleSplit(n_splits=folds)}
-    split_type = class_split if problem_type=='classification' else reg_split
-    return split_type
-class_cross_valid=['KFold','Stratified Kfold']
-reg_cross_valid=['Kfold','Shuffle Split']
-
-global client
-client = Client()
-
-
-def rf_regress(X, y, search_type, validation_type, problem_type):
-    rf_params = {
-        'n_estimators': [10, 20, 30],
-        'max_features': ['sqrt', 0.5],
-        'max_depth': [15, 20, 30, 50],
-        'min_samples_leaf': [1, 2, 4, 8],
-        "criterion": ['mse', 'mae']
-    }
-
-    split_type = get_split(problem_type,folds)
-    cv = split_type.get(validation_type)
-    clf = RandomForestRegressor(random_state=0)
-    client = Client()
-    search = {
-        'GridSearchCV': dcv.GridSearchCV(clf, rf_params, cv=cv, scoring='neg_mean_absolute_error', scheduler=client),
-        'RandomisedSearchCV': dcv.RandomizedSearchCV(clf, rf_params, split.get(validation_type),
-                                                     scoring='neg_mean_absolute_error',
-                                                     scheduler=client)}
-
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid = search.get(search_type)
-        grid.fit(X, y)
-        print(grid.best_params_)
-        print(grid.best_score_)
-    print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = RandomForestRegressor(**grid.best_params_)
-    model.fit(X, y)
-    model_name='Tuned_RandomForestRegressor '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def xgb_regress(X, y, search_type, validation_type, problem_type):
-    xgb_params = {'max_depth': list(range(3, 10, 2)),
-                  'min_child_weight': [1, 5, 20, 50],
-                  'gamma': [i / 10. for i in range(0, 4)],
-                  'subsample': [i / 10.0 for i in range(6, 10)],
-                  'colsample_bytree': [i / 10.0 for i in range(6, 10)],
-                  'reg_alpha': [1e-6, 1e-2, 0.1, 1, 100],
-                  'reg_lambda': [1e-6, 1e-2, 0.1, 1, 100]}
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    clf = XGBRegressor(random_state=0)
-    client = Client()
-    search = {
-        'GridSearchCV': dcv.GridSearchCV(clf, xgb_params, cv=cv, scoring='neg_mean_absolute_error', scheduler=client, verbose=2),
-        'RandomisedSearchCV': dcv.RandomizedSearchCV(clf, xgb_params, cv=cv, scoring='neg_mean_absolute_error',
-                                                     scheduler=client)}
-    grid = search.get(search_type)
-    clf.fit(X, y)
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(classify_metric(y))
-        print(grid.best_params_)
-        print(grid.best_score_)
-    print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = XGBRegressor(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_XGBRegressor.sav'))
-    model_name='Tuned_KNeighborsRegressor '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def log_regress(X, y, search_type, validation_type, problem_type):
-    log_reg_params = {'penalty': 'l2',
-                      'C': [0.001, 0.01, 0.1, 1, 10, 100],
-                      'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
-                      'penalty': ['none', 'l1', 'l2', 'elasticnet']
-                      }
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    clf = LinearRegression()
-    client = Client()
-    search = {'GridSearchCV': dcv.GridSearchCV(clf, log_reg_params, cv=cv, scoring='neg_root_mean_squared_error',
-                                               scheduler=client),
-              'RandomisedSearchCV': dcv.RandomizedSearchCV(clf, log_reg_params, cv=cv,
-                                                           scoring='neg_root_mean_squared_error', scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(clf, log_reg_params, cv=3, scoring='neg_root_mean_squared_error')
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = LinearRegression(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_LinearRegression.sav'))
-    model_name='Tuned_LinearRegression '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def knn_regress(X, y, search_type, validation_type, problem_type):
-    knn_params = {
-        'n_neighbors': [2, 3, 5, 10, 15, 20],
-        'metric': ['euclidean', 'manhattan', 'minkowski'],
-        'weights': ['uniform', 'distance']
-    }
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    clf = KNeighborsRegressor()
-    client = Client()
-    search = {'GridSearchCV': dcv.GridSearchCV(clf, knn_params, cv=cv, scoring='neg_root_mean_squared_error',
-                                               scheduler=client),
-              'RandomisedSearchCV': dcv.RandomizedSearchCV(clf, knn_params, cv=cv,
-                                                           scoring='neg_root_mean_squared_error',
-                                                           scheduler=client)}
-    grid = search.get(search_type)
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = KNeighborsRegressor(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_KNeighborsRegressor.sav'))
-    model_name='Tuned_KNeighborsRegressor '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def svc_regress(X, y, search_type, validation_type, problem_type):
-    svc_params = {'C': [0.001, 0.01, 0.1, 1, 10, 100],
-                  'gamma': [0.001, 0.01, 0.1, 1]
-                  # "kernel":['linear','rbf']
-                  }
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    clf = SVR(gamma='scale')
-    client = Client()
-    search = {'GridSearchCV': dcv.GridSearchCV(clf, svc_params, cv=cv, scoring='neg_root_mean_squared_error',
-                                               scheduler=client),
-              'RandomisedSearchCV': dcv.RandomizedSearchCV(clf, svc_params, cv=cv,
-                                                           scoring='neg_root_mean_squared_error',
-                                                           scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(clf, svc_params, cv=3, scoring='neg_root_mean_squared_error')
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = SVR(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_SVR.sav'))
-    model_name='Tuned_SVR '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-def dtree_regress(X, y, search_type, validation_type, problem_type, folds):
-    # create a dictionary of all values we want to test
-    dtree_param = {'criterion': ['mse', 'mae'], 'max_depth': np.arange(3, 15)}
-    split_type = get_split(problem_type,folds)
-    cv = split_type.get(validation_type)
-    dtree_model = DecisionTreeRegressor()
-    #client = Client()
-    search = {'GridSearchCV': dcv.GridSearchCV(dtree_model, dtree_param, cv=cv, scoring='neg_root_mean_squared_error',
-                                               scheduler=client),
-              'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, dtree_param, cv=cv,
-                                                           scoring='neg_root_mean_squared_error', scheduler=client)}
-    grid = search.get(search_type)
-    print('Fold : ',cv)
-    # grid = GridSearchCV(dtree_model, dtree_param, cv=3, scoring='neg_root_mean_squared_error')
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = DecisionTreeRegressor(**grid.best_params_)
-    model.fit(X, y)
-    model_name='Tuned DecisionTreeRegressor '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    #joblib.dump(model, os.path.join(temp_dir, ))
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def adaboost_regress(X, y, search_type, validation_type, problem_type):
-    # create a dictionary of all values we want to test
-    dtree_param = {'n_estimators': [50, 100, 200, 500, 1000],
-                   'learning_rate': [0.01, 0.1, 1., 2.]}
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    dtree_model = AdaBoostRegressor()
     
-    search = {'GridSearchCV': dcv.GridSearchCV(dtree_model, dtree_param, cv=cv, scoring='neg_root_mean_squared_error',
-                                               scheduler=client),
-              'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, dtree_param, cv=cv,
-                                                           scoring='neg_root_mean_squared_error', scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(dtree_model, dtree_param, cv=3, scoring='neg_root_mean_squared_error')
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = AdaBoostRegressor(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_AdaBoostRegressor.sav'))
-    model_name='Tuned_AdaBoostRegressor '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def gradboost_regress(X, y, search_type, validation_type, problem_type):
-    # create a dictionary of all values we want to test
-    dtree_param = {'n_estimators': [50, 100, 200, 500, 1000],
-                   'learning_rate': [0.01, 0.1, 1., 2.],
-                   'max_depth': [4, 6, 8]}
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    dtree_model = GradientBoostingRegressor()
-    client = Client()
-    search = {'GridSearchCV': dcv.GridSearchCV(dtree_model, dtree_param, cv=cv, scoring='neg_root_mean_squared_error',
-                                               scheduler=client),
-              'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, dtree_param, cv=cv,
-                                                           scoring='neg_root_mean_squared_error', scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(dtree_model, dtree_param, cv=3, scoring='neg_root_mean_squared_error')
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = GradientBoostingRegressor(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_AdaBoostRegressor.sav'))
-    model_name='Tuned_GradientBoostRegressor '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-# -------------Classification-----------------------------------------
-def rf_classify(X, y, search_type, validation_type, problem_type):
-    rf_params = {
-        'n_estimators': [10, 20, 30],
-        'max_features': ['sqrt', 0.5],
-        'max_depth': [15, 20, 30, 50],
-        'min_samples_leaf': [1, 2, 4, 8],
-        # "bootstrap":[True,False],
-        "criterion": ['gini', 'entropy']
-    }
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    dtree_model = RandomForestClassifier(random_state=0)
-    client = Client()
-    search = {
-        'GridSearchCV': dcv.GridSearchCV(dtree_model, rf_params, cv=cv, scoring=classify_metric(y), scheduler=client),
-        'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, rf_params, cv=cv, scoring=classify_metric(y),
-                                                     scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(clf, rf_params, cv=3, scoring=classify_metric(y))
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(classify_metric(y))
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = RandomForestClassifier(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_RandomForestClassifier.sav'))
-    model_name='Tuned_RandomForestClassifier'+search_type+' '+validation_type+' '+str(folds)+' folds'
-    print(model_name)
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def xgb_classify(X, y, search_type, validation_type, problem_type):
-    xgb_params = {'max_depth': list(range(3, 10, 2)),
-                  'min_child_weight': [1, 5, 20, 50],
-                  'gamma': [i / 10. for i in range(0, 4)],
-                  'subsample': [i / 10.0 for i in range(6, 10)],
-                  'colsample_bytree': [i / 10.0 for i in range(6, 10)],
-                  'reg_alpha': [1e-6, 1e-2, 0.1, 1, 100],
-                  'reg_lambda': [1e-6, 1e-2, 0.1, 1, 100]}
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    dtree_model = XGBClassifier(random_state=0)
-    client = Client()
-    search = {
-        'GridSearchCV': dcv.GridSearchCV(dtree_model, xgb_params, cv=cv, scoring=classify_metric(y), scheduler=client),
-        'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, xgb_params, cv=cv, scoring=classify_metric(y),
-                                                     scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(clf, xgb_params, cv=3, scoring=classify_metric(y))
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(classify_metric(y))
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = XGBClassifier(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_XGBClassifier.sav'))
-    model_name='Tuned_XGBClassifier '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def log_classify(X, y, search_type, validation_type, problem_type):
-    log_reg_params = {'C': [0.001, 0.01, 0.1, 1, 10, 100],
-                      #'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
-                      'penalty': ['none', 'l1', 'l2', 'elasticnet']
-                      }
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    dtree_model = LogisticRegression()
-    client = Client()
-    search = {'GridSearchCV': dcv.GridSearchCV(dtree_model, log_reg_params, cv=cv, scoring=classify_metric(y),
-                                               scheduler=client),
-              'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, log_reg_params, cv=cv,
-                                                           scoring=classify_metric(y), scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(clf, log_reg_params, cv=3, scoring=classify_metric(y))
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(classify_metric(y))
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = LogisticRegression(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_LogisticRegression.sav'))
-
-    model_name='Tuned_LogisticRegression'+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def knn_classify(X, y, search_type, validation_type, problem_type):
-    knn_params = {
-        'n_neighbors': [2, 3, 5, 10, 15, 20],
-        'metric': ['euclidean', 'manhattan', 'minkowski'],
-        'weights': ['uniform', 'distance']
-    }
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    dtree_model = KNeighborsClassifier()
-    client = Client()
-    search = {
-        'GridSearchCV': dcv.GridSearchCV(dtree_model, knn_params, cv=cv, scoring=classify_metric(y), scheduler=client),
-        'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, knn_params, cv=cv, scoring=classify_metric(y),
-                                                     scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(clf, knn_params, cv=3, scoring=classify_metric(y))
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(classify_metric(y))
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = KNeighborsClassifier(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_KNeighborsClassifier.sav'))
-    model_name='Tuned_KNeighborsClassifier '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def svc_classify(X, y, search_type, validation_type, problem_type):
-    svc_params = {'C': [0.001, 0.01, 0.1, 1, 10, 100],
-                  'gamma': [0.001, 0.01, 0.1, 1]
-                  # "kernel":['linear','rbf']
-                  }
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    dtree_model = SVC(gamma='scale')
-    client = Client()
-    search = {
-        'GridSearchCV': dcv.GridSearchCV(dtree_model, svc_params, cv=cv, scoring=classify_metric(y), scheduler=client),
-        'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, svc_params, cv=cv, scoring=classify_metric(y),
-                                                     scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(clf, svc_params, cv=3, scoring=classify_metric(y))
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(classify_metric(y))
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = SVC(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_SVC.sav'))
-    model_name='Tuned_SVC '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def dtree_classify(X, y, search_type, validation_type, problem_type):
-    # create a dictionary of all values we want to test
-    dtree_param = {'criterion': ['gini', 'entropy'], 'max_depth': np.arange(3, 15)}
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    dtree_model = DecisionTreeClassifier()
-    client = Client()
-    search = {
-        'GridSearchCV': dcv.GridSearchCV(dtree_model, dtree_param, cv=cv, scoring=classify_metric(y), scheduler=client),
-        'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, dtree_param, cv=cv, scoring=classify_metric(y),
-                                                     scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(dtree_model, dtree_param, cv=3, scoring=classify_metric(y))
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(classify_metric(y))
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = DecisionTreeClassifier(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_DecisionTreeClassifier.sav'))
-    model_name='Tuned_DecisionTreeClassifier '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def adaboost_classify(X, y, search_type, validation_type, problem_type):
-    # create a dictionary of all values we want to test
-    dtree_param = {'n_estimators': [50, 100, 200, 500, 1000],
-                   'learning_rate': [0.01, 0.1, 1., 2.]}
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    dtree_model = AdaBoostClassifier()
-    client = Client()
-    search = {
-        'GridSearchCV': dcv.GridSearchCV(dtree_model, dtree_param, cv=cv, scoring=classify_metric(y), scheduler=client),
-        'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, dtree_param, cv=cv, scoring=classify_metric(y),
-                                                     scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(dtree_model, dtree_param, cv=3, scoring=classify_metric(y))
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(classify_metric(y))
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = AdaBoostClassifier(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_AdaBoostClassifier.sav'))
-    model_name='Tuned_AdaBoostClassifier '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
-
-def gradboost_classify(X, y, search_type, validation_type, problem_type):
-    # create a dictionary of all values we want to test
-    dtree_param = {'n_estimators': [50, 100, 200, 500, 1000],
-                   'learning_rate': [0.01, 0.1, 1., 2.],
-                   'max_depth': [4, 6, 8]}
-    split_type = class_split if problem_type=='classification' else reg_split
-    cv = split_type.get(validation_type)
-    dtree_model = GradientBoostingClassifier()
-    client = Client()
-    search = {
-        'GridSearchCV': dcv.GridSearchCV(dtree_model, dtree_param, cv=cv, scoring=classify_metric(y), scheduler=client),
-        'RandomisedSearchCV': dcv.RandomizedSearchCV(dtree_model, dtree_param, cv=cv, scoring=classify_metric(y),
-                                                     scheduler=client)}
-    grid = search.get(search_type)
-    # grid = GridSearchCV(dtree_model, dtree_param, cv=3, scoring=classify_metric(y))
-    start_time = time.time()
-    with joblib.parallel_backend('dask'):
-        grid.fit(X, y)
-        print(classify_metric(y))
-        print(grid.best_params_)
-        print(grid.best_score_)
-        print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-    model = GradientBoostingClassifier(**grid.best_params_)
-    model.fit(X, y)
-    #joblib.dump(model, os.path.join(temp_dir, 'Tuned_AdaBoostClassifier.sav'))
-    model_name='Tuned_GradientBoostClassifier '+search_type+' '+validation_type+' '+str(folds)+' folds'
-    return grid.best_params_, grid.best_score_, model_name, model
-
 
 def tuning(request):
     user_name = request.session['user_id']
@@ -2935,7 +2441,7 @@ def tuning(request):
         project_id = get_current_project(user_name)
         temp_file = current_file(user_name)
         data_in = get_current_file(user_name, temp_file)
-        problem_type = get_problem_type(temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         
         saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
@@ -2946,7 +2452,7 @@ def tuning(request):
         print('Chosen Model: ', request.POST['premodel'])
 
         target = get_target(user_name, temp_file,project_id)
-        columns_selected = get_columns_selected(temp_file)
+        columns_selected = get_columns_selected(user_name, temp_file)
         print('Selected Columns: ', columns_selected)
         x = data_in.drop(target, axis=1).loc[:, columns_selected]
         y = data_in[target]
@@ -2963,57 +2469,57 @@ def tuning(request):
         if request.POST['premodel'].startswith('Random'):
             print('Tuning RandomForest')
             best_params, accuracy, model_name, model_file = rf_regress(x, y, search_type,
-                                               validation_type,problem_type) if problem_type == 'regression' else rf_classify(x, y,
+                                               validation_type,problem_type, folds) if problem_type == 'regression' else rf_classify(x, y,
                                                                                                                  search_type,
-                                                                                                                 validation_type,problem_type)
-        if request.POST['premodel'] == 'xgb':
+                                                                                                                 validation_type,problem_type, folds)
+        if request.POST['premodel'].startswith('XGB'):
             print('Tuning XGBClassifier')
             best_params, accuracy, model_name, model_file = xgb_regress(x, y, search_type,
-                                                validation_type,problem_type) if problem_type == 'regression' else xgb_classify(x,
+                                                validation_type,problem_type, folds) if problem_type == 'regression' else xgb_classify(x,
                                                                                                                    y,
                                                                                                                    search_type,
-                                                                                                                   validation_type,problem_type)
+                                                                                                                   validation_type,problem_type, folds)
         #if request.POST['premodel'] == 'log_reg':
         if request.POST['premodel'].startswith('Linear') or request.POST['premodel'].startswith('Logistic'):
             print('Tuning Logistic Regression')
             best_params, accuracy, model_name, model_file = log_regress(x, y, search_type,
-                                                validation_type,problem_type) if problem_type == 'regression' else log_classify(x,
+                                                validation_type,problem_type, folds) if problem_type == 'regression' else log_classify(x,
                                                                                                                    y,
                                                                                                                    search_type,
-                                                                                                                   validation_type,problem_type)
+                                                                                                                   validation_type,problem_type, folds)
         if request.POST['premodel'].startswith('KNeighbors'):
             print('Tuning KNNClassifier')
             best_params, accuracy, model_name, model_file = knn_regress(x, y, search_type,
-                                                validation_type,problem_type) if problem_type == 'regression' else knn_classify(x,
+                                                validation_type,problem_type, folds) if problem_type == 'regression' else knn_classify(x,
                                                                                                                    y,
                                                                                                                    search_type,
-                                                                                                                   validation_type,problem_type)
+                                                                                                                   validation_type,problem_type, folds)
         if request.POST['premodel'] == 'svc':
             print('Tuning SVC')
             best_params, accuracy, model_name, model_file = svc_regress(x, y, search_type,
-                                                validation_type,problem_type) if problem_type == 'regression' else svc_classify(x,
+                                                validation_type,problem_type, folds) if problem_type == 'regression' else svc_classify(x,
                                                                                                                    y,
                                                                                                                    search_type,
-                                                                                                                   validation_type,problem_type)
+                                                                                                                   validation_type,problem_type, folds)
         if request.POST['premodel'].startswith('Decision'):
             print('Tuning Decision Tree')
             best_params, accuracy, model_name, model_file = dtree_regress(x, y,
                                                   search_type,
                                                   validation_type,problem_type,folds) if problem_type == 'regression' else dtree_classify(
                 x, y,
-                search_type, validation_type,problem_type)
-        if request.POST['premodel'] == 'adaboost':
+                search_type, validation_type,problem_type, folds)
+        if request.POST['premodel'].startswith('Ada'):
             print('Tuning Adaboost')
             best_params, accuracy, model_name, model_file = adaboost_regress(x, y,
                                                      search_type,
-                                                     validation_type,problem_type) if problem_type == 'regression' else adaboost_classify(
-                x, y, search_type, validation_type,problem_type)
-        if request.POST['premodel'] == 'gb':
+                                                     validation_type,problem_type, folds) if problem_type == 'regression' else adaboost_classify(
+                x, y, search_type, validation_type,problem_type, folds)
+        if request.POST['premodel'].startswith('GradientBoost'):
             print('Tuning Adaboost')
             best_params, accuracy, model_name, model_file = gradboost_regress(x, y,
                                                       search_type,
-                                                      validation_type,problem_type) if problem_type == 'regression' else gradboost_classify(
-                x, y, search_type, validation_type,problem_type)
+                                                      validation_type,problem_type, folds) if problem_type == 'regression' else gradboost_classify(
+                x, y, search_type, validation_type,problem_type, folds)
         print(best_params)
         best_params = pd.DataFrame(pd.Series(best_params)).T
         best_score = 'neg_root_mean_squared_error' if problem_type == 'regression' else classify_metric(y)
@@ -3047,7 +2553,7 @@ def tuning(request):
     else:
         project_id = get_current_project(user_name)
         temp_file = current_file(user_name)
-        problem_type = get_problem_type(temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         
         saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
@@ -3074,7 +2580,7 @@ def prediction(request):
     if 'predict' in request.POST and request.method == "POST":
         
         temp_file = current_file(user_name)
-        problem_type = get_problem_type(temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         print('Problem Type: ', problem_type)
 
         project_id = get_current_project(user_name)
@@ -3093,11 +2599,11 @@ def prediction(request):
         [model_list.append(i) for i in algos]
         model_list = [{'field': f, 'title': f} for f in model_list]
 
-        columns_selected = get_columns_selected(temp_file)
+        columns_selected = get_columns_selected(user_name, temp_file)
         print('Columns: ', columns_selected)
         target = get_target(user_name, temp_file,project_id)
         print('Target Column: ', target)
-        test_data = get_test_file(temp_file)
+        test_data = get_test_file(user_name, temp_file)
 
         pred = loaded_model.predict(test_data.loc[:, columns_selected])
         #predicted = pd.DataFrame({'Predictions': pred})
@@ -3117,7 +2623,7 @@ def prediction(request):
             predicted = pd.concat([test_data, predicted], axis=1)
             #save_predictions_file(temp_file, predicted)   
 
-        save_predictions_file(temp_file, predicted)
+        save_predictions_file(user_name, temp_file, predicted)
         
 
         print('Problem Type: ', problem_type)
@@ -3128,7 +2634,7 @@ def prediction(request):
                                color=predicted['Predictions'])
         distribution = fig.to_html(full_html=False, default_height=500, default_width=700)
         
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
         best_models=result['Model'][0]
         model_list = {
             'best_models':best_models,
@@ -3153,18 +2659,18 @@ def prediction(request):
             project_id = get_current_project(user_name)
             print('Project Id: ',project_id)
             df = file_type.get(file_name.split('.')[-1])(x, na_values=' ')
-            test_file_upload(temp_file, df)
+            test_file_upload(user_name, temp_file, df)
             
-        columns_selected = get_columns_selected(temp_file)
+        columns_selected = get_columns_selected(user_name, temp_file)
 
         # test_file_use(test_data_path)
-        test_data = get_test_file(temp_file)
+        test_data = get_test_file(user_name, temp_file)
 
         target = get_target(user_name, temp_file,project_id)
         # columns_selected.extend([target])
         print(columns_selected)
         # test_data=test_data.loc[:, columns_selected]
-        feat_engine = use_operation()
+        feat_engine = use_operation(user_name)
         print(feat_engine)
         for operation, column in zip(feat_engine['Operation'], feat_engine['Column']):
             print(operation, ' on ', column)
@@ -3198,8 +2704,8 @@ def prediction(request):
                 print(test_data.loc[:, column].dtypes)
         
         test_data = test_data.loc[:, columns_selected]
-        update_test_file(temp_file, test_data)
-        problem_type = get_problem_type(temp_file)
+        update_test_file(user_name, temp_file, test_data)
+        problem_type = get_problem_type(user_name, temp_file)
         print('Problem Type: ', problem_type)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
 
@@ -3210,7 +2716,7 @@ def prediction(request):
         model_list = [{'field': f, 'title': f} for f in model_list]
 
         # result = pd.read_pickle(os.path.join(temp_dir, 'Leaderboard.pkl'))
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
         best_models=result['Model'][0]
         print(test_data.head())
         model_list = {
@@ -3240,20 +2746,20 @@ def prediction(request):
         if query=="":
             data = psql.read_sql_table(table,test_engine)
         else:
-            data=psql.read_sql_query(query,test_eng)
-        test_file_upload(temp_file,data)
+            data=psql.read_sql_query(query,test_engine)
+        test_file_upload(user_name, temp_file,data)
         print(data)
         
-        columns_selected = get_columns_selected(temp_file)
+        columns_selected = get_columns_selected(user_name, temp_file)
 
         # test_file_use(test_data_path)
-        test_data = get_test_file(temp_file)
+        test_data = get_test_file(user_name, temp_file)
 
         target = get_target(user_name, temp_file,project_id)
         # columns_selected.extend([target])
         print(columns_selected)
         # test_data=test_data.loc[:, columns_selected]
-        feat_engine = use_operation()
+        feat_engine = use_operation(user_name)
         print(feat_engine)
         for operation, column in zip(feat_engine['Operation'], feat_engine['Column']):
             print(operation, ' on ', column)
@@ -3286,8 +2792,8 @@ def prediction(request):
         # test_data.to_csv(test_data_path, index=False)
         
         test_data = test_data.loc[:, columns_selected]
-        update_test_file(temp_file, test_data)
-        problem_type = get_problem_type(temp_file)
+        update_test_file(user_name, temp_file, test_data)
+        problem_type = get_problem_type(user_name, temp_file)
         print('Problem Type: ', problem_type)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
 
@@ -3300,7 +2806,7 @@ def prediction(request):
         model_list = [{'field': f, 'title': f} for f in model_list]
 
         # result = pd.read_pickle(os.path.join(temp_dir, 'Leaderboard.pkl'))
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
         best_models=result['Model'][0]
         print(test_data.head())
         model_list = {
@@ -3318,7 +2824,7 @@ def prediction(request):
 
         temp_file = current_file(user_name)
         project_id=get_current_project(user_name)
-        data_in = get_predictions_file(temp_file)
+        data_in = get_predictions_file(user_name, temp_file)
         response = HttpResponse(data_in, content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=Predictions.csv'
         return response
@@ -3329,8 +2835,8 @@ def prediction(request):
         data_in = get_current_file(user_name, temp_file)
         project_id=get_current_project(user_name)
         target = get_target(user_name, temp_file,project_id)
-        columns_selected = get_columns_selected(temp_file)
-        problem_type = get_problem_type(temp_file)
+        columns_selected = get_columns_selected(user_name, temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         print('Problem Type: ', problem_type)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         dtree = ml_dict.get('dt')
@@ -3351,7 +2857,7 @@ def prediction(request):
         model_list = [{'field': f, 'title': f} for f in model_list]
 
         # result = pd.read_pickle(os.path.join(temp_dir, 'Leaderboard.pkl'))
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
         model_list = {
             'best_models':best_models,
             'model_list': model_list,
@@ -3367,7 +2873,7 @@ def prediction(request):
             problem_type = pickle.load(fp)
         problem_type = list(problem_type.values())[0]
         temp_file = current_file(user_name)
-        problem_type = get_problem_type(temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         print('Problem Type: ', problem_type)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         project_id = get_current_project(user_name)
@@ -3379,7 +2885,7 @@ def prediction(request):
         [model_list.append(i) for i in algos]
         model_list = [{'field': f, 'title': f} for f in model_list]
         
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
         print(result)
         if result.shape[0]>0:
             best_models=result['Model'][0]
@@ -3394,5 +2900,3 @@ def prediction(request):
             'transform_data': result.round(4).to_dict(orient='records')
         }
         return render(request, "prediction.html", model_list)
-
-# tunnel.stop()

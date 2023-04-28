@@ -6,7 +6,8 @@ sns.color_palette("cubehelix")
 import scikitplot.metrics
 from sklearn import metrics
 import statsmodels.api as sm
-
+from io import BytesIO
+import base64
 def plot():
     buffer = BytesIO()
     plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
