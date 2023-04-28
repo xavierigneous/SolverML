@@ -73,10 +73,11 @@ from db_operations import sql_engine, get_projects, upload_projects, update_proj
     use_operation, get_all_operations, new_file_queries, file_upload, merge_file_upload, current_file, get_current_directory, \
     delete_file, get_current_file, get_current_display_file, update_train_file, test_file_upload, get_test_file, update_test_file, \
     get_problem_type, save_models, get_models, save_predictions_file, get_predictions_file, save_target, get_target, \
-    save_columns_selected, get_columns_selected, save_leaderboard, get_leaderboard, store_all_operation
+    save_columns_selected, get_columns_selected, save_leaderboard, get_leaderboard, store_all_operation, store_chart
 ############# PLotting Operations import #######################
-from metrics_plot import plot, plot_classification, plot_regression, linear_feat_importance, tree_feat_importance, feat_importance_init,\
-    store_chart
+from metrics_plot import plot, plot_classification, plot_regression, linear_feat_importance, tree_feat_importance, feat_importance_init
+############## Modelling Operations import #######################
+from modelling_utilities import fit_ml_algo, fit_ml_algo_predict, roc_auc_score_multiclass, train_test_fit
 
 # Create your views here.
 global nrows, temp_file, user_name
@@ -1788,92 +1789,7 @@ def modelling(request):
             , 'no_features': no_features
         }
         return render(request, "modelling.html", transform_data)
-
-
-classification_scoring = ['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted', 'roc_auc_ovr_weighted']
-regression_scoring = ['neg_mean_absolute_error', 'neg_mean_squared_error', 'neg_root_mean_squared_error', 'r2']
-
-
-def fit_ml_algo(algo, x, y, fold, problem_type, fold_type):
-    print(fold_type)
-    split = {'kfold': KFold(n_splits=fold, shuffle=True),
-             'stratifiedk_fold': StratifiedKFold(n_splits=fold, shuffle=True),
-             'shuffle_split': ShuffleSplit(n_splits=3)}
-    cv = split.get(fold_type)
-    scoring = regression_scoring if problem_type == 'regression' else classification_scoring
-    scores = model_selection.cross_val_predict(algo, x, y, cv=cv, scoring=scoring, return_train_score=False)
-    return scores
-
-
-def fit_ml_algo_predict(algo, x, y, fold, problem_type, fold_type):
-    print(fold_type)
-    split = {'kfold': KFold(n_splits=fold, shuffle=True),
-             'stratifiedk_fold': StratifiedKFold(n_splits=fold, shuffle=True),
-             'shuffle_split': ShuffleSplit(n_splits=3)}
-    cv = split.get(fold_type)
-    print(cv)
-    scoring = regression_scoring if problem_type == 'regression' else classification_scoring
-    y_pred = model_selection.cross_validate(algo, x, y, cv=cv, scoring=scoring, return_train_score=False)
-    return y_pred
-
-
-def roc_auc_score_multiclass(test, pred, average):
-    uniques = set(test)
-    roc_auc_dict = {}
-    for class_obs in uniques:
-        others = [x for x in uniques if x != class_obs]
-        new_test = [0 if x in others else 1 for x in test]
-        new_pred = [0 if x in others else 1 for x in pred]
-        roc_auc = metrics.roc_auc_score(new_test, new_pred, average=average)
-        roc_auc_dict[class_obs] = roc_auc
-
-    return np.mean(list(roc_auc_dict.values()))
-
-
-def train_test_fit(model, x, y, test_size, problem_type, smote):
-    smote = smote if problem_type == 'classification' else ''
-    stratify = y if problem_type == 'classification' else None
-    X_train, X_test, Y_train, Y_test = model_selection.train_test_split(x, y, test_size=test_size / 100,
-                                                                        random_state=100, stratify=stratify)
-
-    smote_grid = {'SMOTE': SMOTE(random_state=10), 'SMOTEENN': SMOTEENN(random_state=10)}
-    if smote != '':
-        print('SMOTE: ', smote_grid.get(smote))
-        sm = smote_grid.get(smote)
-        X_train, Y_train = sm.fit_resample(X_train, Y_train)
-    model.fit(X_train, Y_train)
-    Y_pred = model.predict(X_test)
-    classification_scoring = ['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted',
-                              'roc_auc_ovr_weighted']
-    regression_scoring = ['neg_mean_absolute_error', 'neg_mean_squared_error', 'neg_root_mean_squared_error', 'r2']
-    if problem_type == 'classification':
-        acc = [metrics.accuracy_score(Y_test, Y_pred)]
-        print('Number of Target Labels: ', len(set(Y_train)))
-        if len(set(Y_train)) <= 2:
-            roc_auc_score = [metrics.roc_auc_score(Y_test, Y_pred, average='weighted')]
-        else:
-            roc_auc_score = [roc_auc_score_multiclass(Y_test, Y_pred, average='weighted')]
-
-        precision_score = [metrics.precision_score(Y_test, Y_pred, average='weighted', labels=np.unique(Y_pred))]
-        recall_score = [metrics.recall_score(Y_test, Y_pred, average='weighted', labels=np.unique(Y_pred))]
-        f1_score = [metrics.f1_score(Y_test, Y_pred, average='weighted', labels=np.unique(Y_pred))]
-        scoring = classification_scoring
-        class_result = pd.DataFrame(list(zip(acc, roc_auc_score, precision_score, recall_score, f1_score)),
-                                    columns=scoring)
-    if problem_type == 'regression':
-        neg_mean_absolute_error = [metrics.mean_absolute_error(Y_test, Y_pred)]
-        neg_mean_squared_error = [metrics.mean_squared_error(Y_test, Y_pred)]
-        neg_root_mean_squared_error = [metrics.mean_squared_error(Y_test, Y_pred, squared=False)]
-        r2 = [metrics.r2_score(Y_test, Y_pred)]
-        scoring = regression_scoring
-        reg_result = pd.DataFrame(
-            list(zip(neg_mean_absolute_error, neg_mean_squared_error, neg_root_mean_squared_error, r2)),
-            columns=scoring)
-
-    res = reg_result if problem_type == 'regression' else class_result
-    print(res)
-    return res
-
+    
 
 class_dict = {'log_reg': LogisticRegression(),
               'rf': RandomForestClassifier(),
@@ -1892,13 +1808,12 @@ reg_dict = {'log_reg': LinearRegression(),
             'gb': GradientBoostingRegressor(),
             'xgb': XGBRegressor()}
 
-class_validation = {'train_test':'Train-Test Split',
-             'kfold': 'KFold',
-             'stratifiedk_fold':'Stratified KFold'}
-reg_validation = {'train_test':'Train-Test Split',
-             'kfold': 'KFold',
-            'shuffle_split': 'ShuffleSplit'}
+
 def ml_model(request):
+    class_validation = {'train_test':'Train-Test Split', 'kfold': 'KFold','stratifiedk_fold':'Stratified KFold'}
+    reg_validation = {'train_test':'Train-Test Split','kfold': 'KFold','shuffle_split': 'ShuffleSplit'}
+    
+    user_name = request.session['user_id']
     if 'submit_model' in request.POST and request.method == "POST":
 
         temp_file = current_file(user_name)
@@ -1908,12 +1823,12 @@ def ml_model(request):
         target = get_target(user_name, temp_file,project_id)
         print('Target: ', target)
         
-        columns_selected = get_columns_selected(temp_file)
+        columns_selected = get_columns_selected(user_name, temp_file)
         print('Selected Columns: ', columns_selected)
         project_id = get_current_project(user_name)
         algos = request.POST.getlist('model_select')
         
-        tuned_models=get_models(temp_file)
+        tuned_models=get_models(user_name, temp_file)
         if tuned_models.shape[0]>0:
             tuned_models = tuned_models[tuned_models['model_name'].str.startswith('Tuned')]
             print('tuned1 :',tuned_models)
@@ -1927,7 +1842,7 @@ def ml_model(request):
         
         print('KFolds : ', folds)
         
-        problem_type = get_problem_type(temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         print('Problem Type: ', problem_type)
         models, accuracy, precision, recall, f1, roc_auc = [], [], [], [], [], []
         #save_models, params = [], []
@@ -2072,7 +1987,7 @@ def ml_model(request):
         result = result.sort_values(by=sort_key, ascending=order).reset_index(drop=True)
         print(result)
         #result.to_pickle(os.path.join(temp_dir, 'Leaderboard.pkl'))
-        save_leaderboard(temp_file, result)
+        save_leaderboard(user_name, temp_file, result)
         validation_type = reg_validation if problem_type=='regression' else class_validation
         search_option=[{'field': f, 'title': d} for f,d in zip(list(validation_type.keys()),list(validation_type.values()))]
         transform_data = {'model_list': model_list,
@@ -2084,20 +1999,20 @@ def ml_model(request):
     else:
         temp_file = current_file(user_name)
         project_id = get_current_project(user_name)
-        problem_type = get_problem_type(temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         model_list = list(ml_dict.keys())
         model_list = [{'title': type(ml_dict.get(f)).__name__, 'field': f} for f in model_list]
         print(model_list[0]['title'])
         
-        tuned_models=get_models(temp_file)
+        tuned_models=get_models(user_name, temp_file)
         if tuned_models.shape[0]>0:
             tuned_models = tuned_models[tuned_models['model_name'].str.startswith('Tuned')]
             tuned_models = [{'title': x, 'field': x} for x in tuned_models['model_name'].values]
             print(tuned_models)
             model_list.extend(tuned_models)
         print(model_list)
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
         validation_type = reg_validation if problem_type=='regression' else class_validation
         search_option=[{'field': f, 'title': d} for f,d in zip(list(validation_type.keys()),list(validation_type.values()))]
         
@@ -2109,9 +2024,6 @@ def ml_model(request):
         }
 
         return render(request, "model_fit.html", model_list)
-
-
-
 
 
 def metrics_view(request):
@@ -2127,7 +2039,7 @@ def metrics_view(request):
         problem_type = get_problem_type(user_name, temp_file)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         print('Problem Type: ', problem_type)
-        columns_selected = get_columns_selected(temp_file)
+        columns_selected = get_columns_selected(user_name, temp_file)
         print('Selected Columns: ', columns_selected)
         x = data_in.drop(target, axis=1).loc[:, columns_selected]
         y = data_in[target]
@@ -2137,7 +2049,7 @@ def metrics_view(request):
         
         
         
-        models=get_models(temp_file)
+        models=get_models(user_name, temp_file)
         #algos=list(models['model_name'].values)
         chosen_model=request.POST['premodel']
         print(models[models['model_name']==chosen_model]['model_file'].reset_index(drop=True)[0])
@@ -2158,7 +2070,7 @@ def metrics_view(request):
         
         project_id = get_current_project(user_name)
         
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         algos=list(models['model_name'].values)
 
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
@@ -2296,7 +2208,7 @@ def interpret(request):
         X_train, X_test, Y_train, Y_test = model_selection.train_test_split(x, y, test_size=test_size / 100,
                                                                             random_state=100)
 
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         
         print(saved_models[saved_models['model_name']==chosen_model]['model_file'].reset_index(drop=True)[0])
         loaded_model = saved_models[saved_models['model_name']==chosen_model]['model_file'].reset_index(drop=True)[0]
@@ -2396,7 +2308,7 @@ def interpret(request):
         y = data_in[target]
         #test_size = 100/3
         #X_train, X_test, Y_train, Y_test = model_selection.train_test_split(x, y, test_size=test_size / 100,random_state=100)        
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         
         print(saved_models[saved_models['model_name']==chosen_model]['model_file'].reset_index(drop=True)[0])
         loaded_model = saved_models[saved_models['model_name']==chosen_model]['model_file'].reset_index(drop=True)[0]
@@ -2459,7 +2371,7 @@ def interpret(request):
         y = data_in[target]
         # test_size = 100/3
         # X_train, X_test, Y_train, Y_test = model_selection.train_test_split(x, y, test_size=test_size / 100,random_state=100)        
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         
         print(saved_models[saved_models['model_name']==chosen_model]['model_file'].reset_index(drop=True)[0])
         loaded_model = saved_models[saved_models['model_name']==chosen_model]['model_file'].reset_index(drop=True)[0]
@@ -2492,7 +2404,7 @@ def interpret(request):
         temp_file = current_file(user_name)
         project_id = get_current_project(user_name)
         
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
         problem_type = get_problem_type(temp_file)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
@@ -3025,7 +2937,7 @@ def tuning(request):
         data_in = get_current_file(user_name, temp_file)
         problem_type = get_problem_type(temp_file)
         
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
         folds = int(request.POST['folds'])
         
@@ -3109,7 +3021,7 @@ def tuning(request):
         
         ops=pd.DataFrame({'model_name':[model_name],'model_file':[model_file]})
         
-        #model_data=get_models(temp_file)
+        #model_data=get_models(user_name, temp_file)
         saved_models=saved_models.drop(saved_models[saved_models['model_name']==model_name].index).append(ops).reset_index(drop="True")
         saved_models=pickle.dumps(saved_models)
         
@@ -3117,7 +3029,7 @@ def tuning(request):
         # query = "UPDATE public.modelling SET models= %s where user_name=%s AND project_id=%s AND file_name=%s",saved_models,user_name,project_id,file_name
         # engine.execute()
         sql_engine().execute("UPDATE public.modelling SET models= %s where user_name=%s AND project_id=%s AND file_name=%s",saved_models,user_name,project_id,file_name)
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
         model_list = []
         [model_list.append(i) for i in algos]
@@ -3137,7 +3049,7 @@ def tuning(request):
         temp_file = current_file(user_name)
         problem_type = get_problem_type(temp_file)
         
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
         print(algos)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
@@ -3166,7 +3078,7 @@ def prediction(request):
         print('Problem Type: ', problem_type)
 
         project_id = get_current_project(user_name)
-        models=get_models(temp_file)
+        models=get_models(user_name, temp_file)
 
         chosen_model=request.POST['premodel']
         print(models[models['model_name']==chosen_model]['model_file'].reset_index(drop=True)[0])
@@ -3174,7 +3086,7 @@ def prediction(request):
         print('Model File :', loaded_model)
 
         
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         model_list = []
@@ -3291,7 +3203,7 @@ def prediction(request):
         print('Problem Type: ', problem_type)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
 
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
         model_list = []
         [model_list.append(i) for i in algos]
@@ -3380,7 +3292,7 @@ def prediction(request):
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
 
         
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         model_list = []
@@ -3431,7 +3343,7 @@ def prediction(request):
         _ = tree.plot_tree(dtree, feature_names=list(features.columns), filled=True, class_names=None, max_depth=2,
                            fontsize=15)
         tree_view = plot()
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         model_list = []
@@ -3460,7 +3372,7 @@ def prediction(request):
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         project_id = get_current_project(user_name)
         
-        saved_models=get_models(temp_file)
+        saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         model_list = []
