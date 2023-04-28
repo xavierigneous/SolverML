@@ -74,11 +74,11 @@ from db_operations import sql_engine, get_projects, upload_projects, update_proj
     delete_file, get_current_file, get_current_display_file, update_train_file, test_file_upload, get_test_file, update_test_file, \
     get_problem_type, save_models, get_models, save_predictions_file, get_predictions_file, save_target, get_target, \
     save_columns_selected, get_columns_selected, save_leaderboard, get_leaderboard, store_all_operation
-
-
+############# PLotting Operations import #######################
+from metrics_plot import plot, plot_classification, plot_regression, linear_feat_importance, tree_feat_importance, feat_importance_init
 
 # Create your views here.
-global out, nrows, temp_file, user_name
+global nrows, temp_file, user_name
 temp_dir = os.path.join(os.getcwd(), 'SolverML_App/temp_data')
 #print(temp_dir)
 import getpass
@@ -171,17 +171,7 @@ def home(request):
 
 
 
-def plot():
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
-    buffer.flush()
-    buffer.seek(0)
-    image_png = buffer.getvalue()
-    graph = base64.b64encode(image_png)
-    graph = graph.decode('utf-8')
-    buffer.flush()
-    buffer.close()
-    return graph
+
 
 # -------------ALL SQL OPERATIONS-------------------
 file_type = {'csv': pd.read_csv, 'xlsx': pd.read_excel, 'xls': pd.read_excel, 'txt': pd.read_table}
@@ -1692,8 +1682,6 @@ def modelling(request):
         print('Starting Auto Feature Selector')
         new_X = fsel.fit_transform(X_train, y_train)
         selected_columns = pd.DataFrame({'Selected by Auto Feature Selector': new_X.columns.to_list()})
-        with open(os.path.join(temp_dir, 'columns_selected.obj'), 'wb') as fp:
-            pickle.dump(list(new_X.columns), fp)
         save_columns_selected(temp_file, selected_columns.to_json())
         # feats=request.POST.getlist('cols')
         # print(data_in.loc[:,feats].head())
@@ -1733,8 +1721,6 @@ def modelling(request):
         columns = X_train[X_train.columns[fsel.get_support(1)]].columns.to_list()
         print(columns)
         selected_columns = pd.DataFrame({'Selected by Recursive Feature Elimination': columns})
-        with open(os.path.join(temp_dir, 'columns_selected.obj'), 'wb') as fp:
-            pickle.dump(columns, fp)
         save_columns_selected(temp_file, selected_columns.to_json())
         # feats=request.POST.getlist('cols')
         columns = [{'field': f, 'title': X_train[f].dtypes} for f in X_train.columns.to_list()]
@@ -1771,9 +1757,6 @@ def modelling(request):
         columns = [{'field': f, 'title': X_train[f].dtypes} for f in X_train.columns.to_list()]
         target_selected = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         columns_sel = request.POST.getlist('columns')
-        r'''
-        with open(os.path.join(temp_dir, 'columns_selected.obj'), 'wb') as fp:
-            pickle.dump(columns_sel, fp) r'''
         selected_columns = pd.DataFrame({'Selected Columns': columns_sel})
         save_columns_selected(temp_file, selected_columns.to_json())
         print(data_in.columns)
@@ -2066,9 +2049,6 @@ def ml_model(request):
                 model_files.append(ml_dict.get(i))
             elif i.startswith('Tuned'):
                 print(i)
-                #filename == filename.split('.sav')[0]
-                #filename = os.path.join(temp_dir, i)
-                print('Updated file name: ', filename)
                 if request.POST['cross_validation'] not in ['train_test']:
                     tuned_model.fit(x, y)
                 #joblib.dump(tuned_model, filename)
@@ -3192,13 +3172,6 @@ def tuning(request):
         return render(request, "tuning.html", model_list)
 
 
-
-def read_file_use():
-    with open(os.path.join(temp_dir, 'test_file_in_use.obj'), 'rb') as fp:
-        file = pickle.load(fp)
-    return file
-
-
 def prediction(request):
     user_name = request.session['user_id']
     if 'predict' in request.POST and request.method == "POST":
@@ -3342,7 +3315,6 @@ def prediction(request):
         # result = pd.read_pickle(os.path.join(temp_dir, 'Leaderboard.pkl'))
         result = get_leaderboard(temp_file, problem_type)
         best_models=result['Model'][0]
-        # test_data=pd.read_csv(read_file_use())
         print(test_data.head())
         model_list = {
             'best_models':best_models,
@@ -3430,12 +3402,9 @@ def prediction(request):
         [model_list.append(i) for i in algos]
         model_list = [{'field': f, 'title': f} for f in model_list]
 
-
-
         # result = pd.read_pickle(os.path.join(temp_dir, 'Leaderboard.pkl'))
         result = get_leaderboard(temp_file, problem_type)
         best_models=result['Model'][0]
-        # test_data=pd.read_csv(read_file_use())
         print(test_data.head())
         model_list = {
             'best_models':best_models,
@@ -3467,10 +3436,6 @@ def prediction(request):
         problem_type = get_problem_type(temp_file)
         print('Problem Type: ', problem_type)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
-        with open(os.path.join(temp_dir, 'models_selected.obj'), 'rb') as fp:
-            algos = pickle.load(fp)
-        print(algos)
-        ml_dict = reg_dict if problem_type == 'regression' else class_dict
         dtree = ml_dict.get('dt')
         features = data_in.loc[:, columns_selected]
         print(dtree)
@@ -3481,8 +3446,6 @@ def prediction(request):
         _ = tree.plot_tree(dtree, feature_names=list(features.columns), filled=True, class_names=None, max_depth=2,
                            fontsize=15)
         tree_view = plot()
-
-        
         saved_models=get_models(temp_file)
         algos=list(saved_models['model_name'].values)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict

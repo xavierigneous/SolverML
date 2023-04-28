@@ -1,3 +1,4 @@
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
@@ -5,6 +6,18 @@ sns.color_palette("cubehelix")
 import scikitplot.metrics
 from sklearn import metrics
 import statsmodels.api as sm
+
+def plot():
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+    buffer.flush()
+    buffer.seek(0)
+    image_png = buffer.getvalue()
+    graph = base64.b64encode(image_png)
+    graph = graph.decode('utf-8')
+    buffer.flush()
+    buffer.close()
+    return graph
 
 def plot_classification(model, X_train, X_test, Y_train, Y_test, y_pred, probs):
     fig = plt.figure(figsize=(20, 6))
