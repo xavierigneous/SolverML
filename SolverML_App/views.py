@@ -1314,12 +1314,12 @@ def transform(request):
 
         operations = use_operation()
         print(operations)
-        temp_operations = retrieve_temp_operation().reset_index(drop=True)
+        temp_operations = retrieve_temp_operation(user_name).reset_index(drop=True)
         column_list =temp_operations['Column'].tolist()
         feats = list(set(reduce(lambda x,y: x+y, column_list)))
         
         temporary_data=transform.loc[:,feats]
-        temporary(temporary_data)
+        temporary(user_name, temporary_data)
         
         #store_operation(temp_operations['Operation'][0],temp_operations['Column'][0])
         operations = pd.concat([operations, temp_operations], ignore_index=True)
@@ -1328,7 +1328,7 @@ def transform(request):
         store_all_operation(temp_file, operations)
         transform = apply_operations(transform, temp_operations)
         columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
-        update_train_file(temp_file, transform)
+        update_train_file(user_name, temp_file, transform)
         # transform.to_csv(temp_file, index=False)
         transform_data = {
             'columns': columns,
@@ -1345,18 +1345,18 @@ def transform(request):
         index = request.POST.getlist('trans')
         index = [int(i) for i in index]
         print('Chosen Option: ', index)
-        feat_engine = use_operation()
+        feat_engine = use_operation(user_name)
 
         print('Chosen: ', feat_engine.loc[index, :])
         remove_steps = feat_engine.loc[index, :]
         feat_engine = feat_engine.drop(feat_engine.loc[index, :].index)
-        store_all_operation(temp_file, feat_engine.reset_index(drop=True))
+        store_all_operation(user_name, temp_file, feat_engine.reset_index(drop=True))
         #feat_engine.to_pickle(os.path.join(temp_dir, 'operations.pkl'))
         # apply_operations(test_data)
         data_in = apply_reverse_operations(data_in, remove_steps)
 
         columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        update_train_file(temp_file, data_in)
+        update_train_file(user_name, temp_file, data_in)
         temp_data_remove(remove_steps['Column'].reset_index(drop=True)[0])
         
         
