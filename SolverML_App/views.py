@@ -1626,7 +1626,7 @@ def modelling(request):
         n_feats = int(request.POST.get('n_feats')) if no_feat_select != '' else no_features
         print('Number of features :', n_feats)
         if no_feat_select != '':
-            problem_type = get_problem_type(temp_file)
+            problem_type = get_problem_type(user_name, temp_file)
             print('Problem Type: ', problem_type)
             mutual_info = mutual_info_classif if problem_type == 'classification' else mutual_info_regression
             print('Starting SelectKBest')
@@ -1669,7 +1669,7 @@ def modelling(request):
             problem_type = pickle.load(fp)
         print('Problem Type: ', list(problem_type.values())[0])
         problem_type = list(problem_type.values())[0]
-        problem_type = get_problem_type(temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         print('Problem Type: ', problem_type)
         fsel = autofeat.FeatureSelector(problem_type=problem_type)
         print('Starting Auto Feature Selector')
@@ -1706,7 +1706,7 @@ def modelling(request):
         with open('problem_type.obj', 'rb') as fp:
             problem_type = pickle.load(fp)
         problem_type = list(problem_type.values())[0]
-        problem_type = get_problem_type(temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         print('Problem Type: ', problem_type)
         estimator = RandomForestRegressor() if problem_type == 'regression' else RandomForestClassifier()
         fsel = RFECV(estimator, step=1, cv=5)
@@ -2181,7 +2181,7 @@ def interpret(request):
 
         distribution = plot()
 
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
 
         distribution = {'distribution': distribution,
                         #'model_list': model_list,
@@ -2197,13 +2197,13 @@ def interpret(request):
         data_in = get_current_file(user_name, temp_file)
         project_id=get_current_project(user_name)
         target = get_target(user_name, temp_file,project_id)
-        problem_type = get_problem_type(temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
 
         print('Chosen Model: ', request.POST['premodel'])
         chosen_model = request.POST['premodel']
         
-        columns_selected = get_columns_selected(temp_file)
+        columns_selected = get_columns_selected(user_name, temp_file)
         print('Selected Columns: ', columns_selected)
         x = data_in.drop(target, axis=1).loc[:, columns_selected]
         y = data_in[target]
@@ -2280,7 +2280,7 @@ def interpret(request):
         #model_list = []
         #[model_list.append(i) for i in algos]
         #model_list = [{'field': f, 'title': f} for f in model_list]
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
         distribution = {'distribution': distribution,
                         #'model_list': model_list,
                         'columns':result.columns.values,
@@ -2298,14 +2298,14 @@ def interpret(request):
         temp_file = current_file(user_name)
         data_in = get_current_file(user_name, temp_file)
         project_id=get_current_project(user_name)
-        target = get_target(temp_file, project_id)
-        problem_type = get_problem_type(temp_file)
+        target = get_target(user_name, temp_file, project_id)
+        problem_type = get_problem_type(user_name, temp_file)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
 
         print('Chosen Model: ', request.POST['premodel'])
         chosen_model = request.POST['premodel']
         
-        columns_selected = get_columns_selected(temp_file)
+        columns_selected = get_columns_selected(user_name, temp_file)
         print('Selected Columns: ', columns_selected)
         x = data_in.drop(target, axis=1).loc[:, columns_selected]
         y = data_in[target]
@@ -2338,11 +2338,7 @@ def interpret(request):
         print('Data: ', x.iloc[[n], :])
         lime_plot = explainer.explain_instance(data_row=x.iloc[n, :], predict_fn=model_fitting).as_html()
 
-        #algos=list(saved_models['model_name'].values)
-        #model_list = []
-        #[model_list.append(i) for i in algos]
-        #model_list = [{'field': f, 'title': f} for f in model_list]
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
         
 
         distribution = {'lime_plot': lime_plot,
@@ -2361,14 +2357,14 @@ def interpret(request):
         temp_file = current_file(user_name)
         data_in = get_current_file(user_name, temp_file)
         project_id=get_current_project(user_name)
-        target = get_target(temp_file, project_id)
-        problem_type = get_problem_type(temp_file)
+        target = get_target(user_name, temp_file, project_id)
+        problem_type = get_problem_type(user_name, temp_file)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
 
         print('Chosen Model: ', request.POST['premodel'])
         chosen_model = request.POST['premodel']
         
-        columns_selected = get_columns_selected(temp_file)
+        columns_selected = get_columns_selected(user_name, temp_file)
         print('Selected Columns: ', columns_selected)
         x = data_in.drop(target, axis=1).loc[:, columns_selected]
         y = data_in[target]
@@ -2391,7 +2387,7 @@ def interpret(request):
         # plt.figure().clear()  # Clears background Plots
         eli5_html = eli5.format_as_html(eli5.explain_weights(perm, feature_names = x.columns.tolist()))
 
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
         
 
         distribution = {'eli5_html': eli5_html,
@@ -2409,13 +2405,13 @@ def interpret(request):
         
         saved_models=get_models(user_name, temp_file)
         algos=list(saved_models['model_name'].values)
-        problem_type = get_problem_type(temp_file)
+        problem_type = get_problem_type(user_name, temp_file)
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         #model_list = []
         #[model_list.append(i) for i in algos]
         #model_list = [{'field': f, 'title': f} for f in model_list]
         #model_list.extend(tuned_models)
-        result = get_leaderboard(temp_file, problem_type)
+        result = get_leaderboard(user_name, temp_file, problem_type)
         model_list = {
 
             #'model_list': model_list,
