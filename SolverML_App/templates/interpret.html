@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Interpret View</title>
+</head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<body>
+  <style type="text/css">
+  .navbar {
+  overflow: hidden;
+  background-color: #6A8DF4;
+  color: white;
+
+  font-family: Arial, Helvetica, sans-serif;
+}
+.navbar a {
+  float: right;
+  font-size: 16px;
+  color: white;
+  background-color: #1F51E9;
+  border:1px solid white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.dropdown {
+  float: left;
+  overflow: hidden;
+}
+.active {
+  background-color: #4CAF50;
+  color: white;
+}
+.dropdown .dropbtn {
+  font-size: 16px;  
+  border: none;
+  outline: none;
+  color: white;
+  padding: 14px 16px;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+}
+
+.navbar a:hover, .dropdown:hover .dropbtn {
+  background-color: red;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  float: none;
+  color: gray;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}</style>
+ <body>
+<!-- onclick="history.back()-->
+<div class="navbar">
+<a name='back' onclick=history.back()>Back</a>
+<a href="{% url 'homepage' %}" name='homepage'>home</a>
+<a href="{% url 'dataview' %}" name='dataview'>Data</a>
+<a href="{% url 'transform' %}"name="transform">Transform</a>
+<a href="{% url 'visual' %}" name="visual">EDA</a>
+<a href="{% url 'modelling' %}" name="modelling">Modelling</a>
+<a href="{% url 'interpret' %}" name="interpret">Interpret</a>
+<a href="{% url 'prediction' %}" name="prediction">Prediction</a>
+</div>
+
+
+<h2>Results</h2><a href="{% url 'model_fit' %}">Go to Modelling</a>
+<form method="POST">
+    <style >
+  p {
+  font-family: 'Segoe UI SemiBold';
+  font-size: 16px;
+  color: #535353;
+  text-align: left;
+
+</style>
+  {% csrf_token %}
+  <table class="table table-dark table-striped">
+<tbody>
+    <style> th{
+  background:#3f577c; 
+  font-family:sans-serif; 
+  color:white;
+  text-align: center;
+  justify-content: center;
+  border:1px solid black;
+}td {
+  text-align: center;
+  vertical-align: bottom;
+}
+  </style>
+
+<p>
+<tr>
+    <th>Choose Model</th>
+    {% for col in columns %}
+    <th>{{col}}</th>
+    {% endfor %}
+</tr>
+
+{% for rows in transform_data %}
+  <tr>
+  <td><input type="radio" class='premodel' value='{{rows.Model}}' name="premodel"></input></td>
+  {% for i,j in rows.items %}
+      <td>{{ j }}</td>
+  {% endfor %}
+  
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+  </p>
+  <button type='submit' class="shap_model" name="shap_model">Interpret</button>
+  <button type='submit' class="local_interpret" name="local_interpret">Local Interpret</button>
+  <button type='submit' class="lime_model" name="lime_model">LIME</button>
+  <button type='submit' class="eli5" name="eli5">Explain Like I'm 5</button>
+
+</form>
+<p>
+
+{{model.title | safe}}
+
+</p>
+<style >
+  p {
+  font-family: 'Segoe UI SemiBold';
+  font-size: 16px;
+  color: #535353;
+  text-align: left;
+</style>
+  {% if shap_plot %}
+  <p>
+    Actual Value: {{actual}}<br>
+    Predicted Value: {{predicted}}</p><br>
+    <img src="data:image/png;base64,{{shap_plot | safe}}">
+  {% endif %}
+  {% if lime_plot %}
+  <p>
+    Actual Value: {{actual}}<br>
+    Predicted Value: {{predicted}}</p><br>
+    {{ lime_plot|safe }}
+  {% endif %}
+
+  {% if distribution %}
+  <p>
+    
+    <img src="data:image/png;base64,{{distribution | safe}}">
+    <!--{{ distribution|safe }}-->
+  {% endif %}
+
+  {% if eli5_html %}
+  <p>{% block body %}
+        {% autoescape off %}
+          {{ eli5_html }}
+        {% endautoescape %}
+    {% endblock body %}
+  {% endif %}
+
+<table class="table table-dark table-striped">
+  <style>.dataframe th{
+  background:#3f577c; 
+  font-family:sans-serif; 
+  color:white;
+  text-align: center;
+  justify-content: center;
+  border:1px solid black;
+}td {
+  text-align: center;
+  vertical-align: bottom;
+}
+  </style>
+{% if test_data %}
+    <h5>Data under analysis</h5>
+    <td id="data_table"> {{ test_data | safe}} </td>
+  {% endif %}
+</tbody>
+</table>
+</body>
+</html>

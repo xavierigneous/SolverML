@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Metrics View</title>
+</head>
+
+<body>
+  <style type="text/css">
+  .navbar {
+  overflow: hidden;
+  background-color: #6A8DF4;
+  color: white;
+
+  font-family: Arial, Helvetica, sans-serif;
+}
+.navbar a {
+  float: right;
+  font-size: 16px;
+  color: white;
+  background-color: #1F51E9;
+  border:1px solid white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.dropdown {
+  float: left;
+  overflow: hidden;
+}
+.active {
+  background-color: #4CAF50;
+  color: white;
+}
+.dropdown .dropbtn {
+  font-size: 16px;  
+  border: none;
+  outline: none;
+  color: white;
+  padding: 14px 16px;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+}
+
+.navbar a:hover, .dropdown:hover .dropbtn {
+  background-color: red;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  float: none;
+  color: gray;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}</style>
+ <body>
+<!-- onclick="history.back()-->
+<div class="navbar">
+<a name='back' onclick=history.back()>Back</a>
+<a href="{% url 'homepage' %}" name='homepage'>home</a>
+<a href="{% url 'datainput' %}" name='datainput'>Input</a>
+<a href="{% url 'dataview' %}" name='dataview'>Data</a>
+<a href="{% url 'transform' %}"name="transform">Transform</a>
+<a href="{% url 'visual' %}" name="visual">EDA</a>
+<a href="{% url 'modelling' %}" name="modelling">Modelling</a>
+<a href="{% url 'interpret' %}" name="interpret">Interpret</a>
+<a href="{% url 'prediction' %}" name="prediction">Prediction</a>
+</div>
+<hr>
+<div class="navbar">
+<a href="{% url 'modelling' %}">Go to Modelling</a>
+<a href="{% url 'model_fit' %}">Go to Model Fit</a>
+<a href="{% url 'metrics_view' %}">Go to Metrics View</a>
+<a href="{% url 'tuning' %}" name="tuning">Hyperparameter Tuning</a>
+</div>
+
+<style >
+  p {
+  font-family: 'Segoe UI SemiBold';
+  font-size: 16px;
+  color: #535353;
+  text-align: left;
+
+</style>
+<form method="POST">
+  {% csrf_token %}
+{% for col in model_list %}
+      <p>
+        <label>
+        <input type="radio" class="premodel" name="premodel" value="{{ col.field }}" style = "font-size:8 ;"></input>
+        <td>{{ col.title |safe}}</td> 
+        {% endfor %}
+        </label>
+      </p>
+  <button type='submit' class="choose_model" name="choose_model">View Metrics</button>
+</form>
+
+ <td id="transform_data"> {{ transform_data | safe}} </td>
+   {% if distribution %}
+   <h2>Results</h2>
+   <h3>Model: {{model_chosen}}</h3>
+  <img src="data:image/png;base64,{{distribution | safe}}">
+  {% endif %}
+</tbody>
+</table>
+</body>
+</html>
