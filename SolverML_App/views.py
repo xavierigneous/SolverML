@@ -75,7 +75,8 @@ from db_operations import sql_engine, get_projects, upload_projects, update_proj
     get_problem_type, save_models, get_models, save_predictions_file, get_predictions_file, save_target, get_target, \
     save_columns_selected, get_columns_selected, save_leaderboard, get_leaderboard, store_all_operation
 ############# PLotting Operations import #######################
-from metrics_plot import plot, plot_classification, plot_regression, linear_feat_importance, tree_feat_importance, feat_importance_init
+from metrics_plot import plot, plot_classification, plot_regression, linear_feat_importance, tree_feat_importance, feat_importance_init,\
+    store_chart
 
 # Create your views here.
 global nrows, temp_file, user_name
@@ -99,12 +100,14 @@ def login_page(request):
             # Success, now let's login the user.
             request.session['user_id'] = user.username
             return redirect('homepage')
+        
         else:
             # Incorrect credentials, let's throw an error to the screen.
             return render(request, 'login.html', {'error_message': 'Incorrect username and / or password.'})
-        if 'logout' in request.POST and request.method == 'POST':
+    if 'logout' in request.POST and request.method == 'POST':
             logout(request)
             return redirect('login_page')
+    
     else:
         # No post data availabe, let's just show the page to the user.
         return render(request, 'login.html')
@@ -168,12 +171,6 @@ def home(request):
         projects = projects.to_dict(orient='records')
         return render(request, 'homepage.html', {'projects': projects, 'current_project': current_project})
 
-
-
-
-
-
-# -------------ALL SQL OPERATIONS-------------------
 file_type = {'csv': pd.read_csv, 'xlsx': pd.read_excel, 'xls': pd.read_excel, 'txt': pd.read_table}
 
 def datainput(request):
@@ -1397,19 +1394,7 @@ def transform(request):
 
         return render(request, "transform.html", transform_data)
 
-def store_chart(user_name,project_id, file_name, chart, x, y=None, color=None):
-    start_time = time.time()
-    query = f"select * from public.eda where user_name='{user_name}' AND project_id='{project_id}' AND file_name='{file_name}'".format(user_name, project_id, file_name)
-    data=pd.read_sql_query(query, sql_engine()).reset_index(drop=True)
-    # data=sql_engine()(query, return_data=True).reset_index(drop=True)
-    df=pd.read_json(data['charts'][0])
-    df['X'][df.chart==chart]=x
-    df['Y'][df.chart==chart]=y
-    df['Z'][df.chart==chart]=color
-    query=f"update public.eda set charts='"+df.to_json()+f"' where user_name='{user_name}' AND project_id='{project_id}' AND file_name='{file_name}'".format(user_name, project_id, file_name)
-    # sql_engine()().execute(query)
-    sql_engine().execute(query)
-    print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
+
 def visual(request):        
     user_name = request.session['user_id']
     if 'distplot' in request.POST and request.method == "POST":

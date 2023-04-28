@@ -497,3 +497,17 @@ def temp_data_remove(user_name, list1):
     # sql_engine().execute(query)
     sql_engine().execute(query)
     print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
+
+def store_chart(user_name,project_id, file_name, chart, x, y=None, color=None):
+    start_time = time.time()
+    query = f"select * from public.eda where user_name='{user_name}' AND project_id='{project_id}' AND file_name='{file_name}'".format(user_name, project_id, file_name)
+    data=pd.read_sql_query(query, sql_engine()).reset_index(drop=True)
+    # data=sql_engine()(query, return_data=True).reset_index(drop=True)
+    df=pd.read_json(data['charts'][0])
+    df['X'][df.chart==chart]=x
+    df['Y'][df.chart==chart]=y
+    df['Z'][df.chart==chart]=color
+    query=f"update public.eda set charts='"+df.to_json()+f"' where user_name='{user_name}' AND project_id='{project_id}' AND file_name='{file_name}'".format(user_name, project_id, file_name)
+    # sql_engine()().execute(query)
+    sql_engine().execute(query)
+    print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
