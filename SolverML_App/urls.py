@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 urlpatterns = [
     path('homepage/',home, name='homepage'),
+    # path('SolverML/', login_page, name='login_page'),
     path('login/', login_page, name='login_page'),
     path('homepage/datainput/', datainput, name='datainput'),
     path('homepage/dataview/', dataview, name='dataview'),

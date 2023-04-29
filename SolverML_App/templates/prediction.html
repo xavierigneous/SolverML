@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+  <body style="background-color:rgb(174, 234, 249);"></body>
 <head>
   <title>Prediction View</title>
 </head>
@@ -202,16 +203,7 @@
           {% endif %}
       {% endfor %}
       <br><br>
-  <style type="text/css">
-    .dugme1 {
-    background: url("https://cdn.icon-icons.com/icons2/1674/PNG/512/download_111133.png") no-repeat center center;
-    background-size: contain;
-    top: 50;
-    right: 50px;
-    width: 60px;
-    height: 60px;
-    }
-  </style>
+  
   <br>
         <label >Hostname: </label>
         <input id="Hostname" type="text" name="Hostname">
@@ -235,10 +227,22 @@
 
         <button type="submit" name="test_sql_upload"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Up</button>
     <br>
-   <button type="submit" name="download_predictions" value='download_predictions' class = "dugme1" style = "background-color: #5D86F3" ></button>
+
+    <style type="text/css">
+    .dugme1 {
+    background: url("https://amritfoundationofindia.in/wp-content/uploads/2018/08/download-logo-300x300.png") no-repeat center center;
+    background-size: contain;
+    top: 50;
+    right: 50px;
+    width: 60px;
+    height: 60px;
+    }
+  </style>
+   <button type="submit" name="download_predictions" value='download_predictions' title="Download Predictions" class = "dugme1" style = "background-color: #5D86F3" ></button>
+   
     <style type="text/css">
     .dugme2 {
-    background: url("https://img-premium.flaticon.com/png/512/2961/premium/2961232.png?token=exp=1628774511~hmac=6a0abf60579181cce22bb12e94a41d04") no-repeat center center;
+    background: url("https://cdn.iconscout.com/icon/premium/png-256-thumb/decision-tree-1492787-1264907.png?f=webp&w=256") no-repeat center center;
     background-size: contain;
     top: 100;
     right: 100px;
@@ -246,7 +250,7 @@
     height: 60px;
     }
     </style>
-   <button type='submit' name="decision_tree" name="decision_tree" class = "dugme2 " style = "background-color: #5D86F3"></button>
+   <button type='submit' name="decision_tree" name="decision_tree" title="Decision Tree" class = "dugme2 " style = "background-color: #5D86F3"></button>
    </form>
   {% if distribution %}
 

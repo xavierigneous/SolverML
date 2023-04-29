@@ -2865,9 +2865,6 @@ def prediction(request):
         return render(request, "prediction.html", model_list)
     # ------------------------------------------
     else:
-        with open('problem_type.obj', 'rb') as fp:
-            problem_type = pickle.load(fp)
-        problem_type = list(problem_type.values())[0]
         temp_file = current_file(user_name)
         problem_type = get_problem_type(user_name, temp_file)
         print('Problem Type: ', problem_type)
