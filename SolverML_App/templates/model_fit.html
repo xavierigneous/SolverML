@@ -99,7 +99,7 @@
 <tbody>
 {% csrf_token %}
 <br>
-<label for="model_select">Choose models</label>
+<label for="model_select" style="color:white;">Choose models</label>
 <br>
 <select name="model_select" id="model_select" multiple='multiple' size="8">
   
@@ -110,15 +110,6 @@
 </select>
 
 <br><br>
-<!--
-<label for="cross_validation">Choose Validation:</label>
-<select name="cross_validation" id="cross_validation">
-  <option value="train_test">Train-Test Split</option>
-  <option value="kfold">KFold</option>
-  <option value="stratifiedk_fold">Stratified KFold</option>
-  <option value="repeatedk_fold">Repeated KFold</option>
-</select>
--->
 
 <select name="cross_validation" id="cross_validation">
     {% for col in search_option %}
@@ -169,10 +160,10 @@
 </head>
 <body>
 <tbody>
-<p>Choose Validation Size</p>
+<p style="color:white;">Choose Validation Size</p>
 <div class="slidecontainer">
   <input name="folds" id="folds" type="range" min="1" max="10" value="5" class="slider">
-  <p>Folds: <span id="demo"></span></p>
+  <p style="color:white;">Folds: <span id="demo"></span></p>
 </div>
 
 <script>
@@ -227,10 +218,10 @@ slider.oninput = function() {
 </head>
 <body>
 <tbody>
-<p>Choose Test Split Size</p>
+<p style="color:white;">Choose Test Split Size</p>
 <div class="slidecontainer1">
   <input name="test_split" id="test_split" type="range" min="10" max="50" value="25" class="slider1">
-  <p>Test Size: <span id="demo1"></span>%</p>
+  <p style="color:white;">Test Size: <span id="demo1"></span>%</p>
 </div>
 
 <script>
@@ -242,14 +233,25 @@ slider1.oninput = function() {
   output1.innerHTML = this.value;
 }
 </script>
-Apply Oversampling/Undersampling
-<br>
+<p style="color:white;">Apply Oversampling/Undersampling</p>
+
 <select name="sampling" id="sampling">
   <option value=""></option>
   <option value="SMOTE">SMOTE</option>
   <option value="SMOTEENN">Undersample-SMOTE</option>
 </select>
-<button type="submit" name="submit_model" class = "waves-effect waves-light btn" style = "background-color: #82E0AA">Submit</button>
+<br><br>
+<style type="text/css">
+  .model_submit {
+  background: url("https://cdn.imgbin.com/13/21/19/imgbin-running-computer-icons-marathon-sport-hindustan-Hz6dPAyHcPaW0ixwSrz1ZNdBJ.jpg") no-repeat center center;
+  background-size: contain;
+  right: 50px;
+  width: 60px;
+  height: 60px;
+  margin: 90px;
+  }
+</style>
+<button type="submit" title="Submit" name="submit_model" class = "model_submit" style = "justify-content: center;"></button>
 </form>
 
 
@@ -262,9 +264,10 @@ Apply Oversampling/Undersampling
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 
 <tbody>
+  <div class="container">
 <table class="table table-dark table-striped">
   <style>.dataframe th{
-  background:#3f577c; 
+  background:rgb(49, 8, 83); 
   font-family:sans-serif; 
   color:white;
   text-align: center;
@@ -299,6 +302,7 @@ h2{
 <h2>Leaderboard</h2>
  <td id="transform_data"> {{ transform_data | safe}} </td>
  {% endif %}
+</div>
 </tbody>
 </table>
 </body>

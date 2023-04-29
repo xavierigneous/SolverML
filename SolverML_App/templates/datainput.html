@@ -9,7 +9,7 @@
   <style type="text/css">
   .navbar {
   overflow: hidden;
-  background-color: #6A8DF4;
+  background-color: #8d2ef2;
   color: white;
 
   font-family: Arial, Helvetica, sans-serif;
@@ -107,13 +107,13 @@ h6:first-line{
 
 <h6 >Project Name:    {{project_name}}</h6>
 <body>
-
+  <div class="container">
 	<!--<label>CSV</label>-->
   <img src="https://visualpharm.com/assets/894/Microsoft Excel-595b40b75ba036ed117d86b9.svg" style="width:100px;height:100px;">
 	<form method="POST" enctype='multipart/form-data'  id='csv_upload'>
 	 	{% csrf_token %}
 	 	   
-			<input type="file" name="file" multiple> <!-- Getting the file here -->
+			<input type="file" name="file" multiple style ="color: #00FF00"> <!-- Getting the file here -->
       
 			<button type="submit" name="csv_upload"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Upload</button>
 			{% for message in messages %}
@@ -121,16 +121,16 @@ h6:first-line{
 			    <div class="success-message" style ="color: #00FF00">{{ message }}</div>
 			    {% endif %}
 			{% endfor %}
-
+  </div>
       
 	  </form>
   <hr style="height:2px;border-width:0;color:gray;background-color:gray">
-
+  <div class="container">
   <!--<label>CSV</label>-->
   <img src="https://www.kindpng.com/picc/m/20-204238_internet-icon-internet-access-web-browser-icono-de.png" style="width:100px;height:100px;">
   <form method="POST" enctype='multipart/form-data'  id='url_file_upload'>
     {% csrf_token %}
-       Enter URL of data
+       Enter URL of data 
       <input type="text" name="url" multiple> <!-- Getting the file here -->
       Enter filename
       <input type="text" name="url_file_name" multiple> <!-- Getting the file here -->
@@ -141,51 +141,52 @@ h6:first-line{
           <div class="success-message" style ="color: #00FF00">{{ message }}</div>
           {% endif %}
       {% endfor %}
-
+  </div>
       
     </form>
   <hr style="height:2px;border-width:0;color:gray;background-color:gray">
-
+  <div class="container">
 	<!--<label>SQL</label>-->
   <!--<img src="https://visualpharm.com/assets/606/SQL-595b40b65ba036ed117d3415.svg" style="width:100px;height:100px;">-->
   <img src="https://img.favpng.com/7/5/11/postgresql-logo-computer-software-database-png-favpng-VzwjvpxaDys6FnN0apYZJbGV7.jpg" style="width:100px;height:100px;">
 	<form method="POST" enctype='multipart/form-data'  id='sql_upload'>
 	 	{% csrf_token %}
 	 		<br>
-    		<label >Hostname: </label>
+    		<label style ="color: #00FF00">Hostname: </label>
         <input id="Hostname" type="text" name="Hostname">
         <br>
-        <label >Port: </label>
+        <label style ="color: #00FF00">Port: </label>
         <input id="port" type="text" name="port">
         <br>
-    		<label >Username: </label>
+    		<label style ="color: #00FF00">Username: </label>
         <input id="username" type="text" name="username">
         <br>
-    		<label >Password: </label>
+    		<label style ="color: #00FF00">Password: </label>
         <input id="password" type="text" name="password">
         <br>
-    		<label >Database: </label>
+    		<label style ="color: #00FF00">Database: </label>
         <input id="database" type="text" name="database">
         <br>
-        <label >Table_name: </label>
+        <label style ="color: #00FF00">Table_name: </label>
         <input id="table" type="text" name="table"></p>
         <br>
-        <label >Query: </label>
+        <label style ="color: #00FF00">Query: </label>
         <input id="query" type="text" name="query"></p>
 
         
       <br>
     	<button type="submit" name="sql_upload"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Upload</button>
     
-  
+    </div>
 	  </form>
 <hr style="height:2px;border-width:2;color:gray;background-color:gray">
 </body>
 <tbody>
 <form method="POST"> {% csrf_token %}
-<p><h1 style="font-family:verdana; font-size:160%;">Files Uploaded</h1>
+<div class="container">
+<p><h1 style="font-family:verdana; font-size:160%;color: #00FF00;">Files Uploaded</h1>
 {% for col in file_lists %}
-      <p><label>
+      <p><label style = "color: #F2C069">
         <input type="checkbox" class="choose_file" name="choose_file" value="{{ col.field }}" ></input>
         
         <td >{{ col.field |safe}}</td>
@@ -245,6 +246,7 @@ h6:first-line{
   </style>
   <p>
   <button type="submit" name="merge_sub"id="merge_sub" class = "dugme4" value='Submit'></button>Submit
+</div>
 </p>
 </form>
 </p>

@@ -18,7 +18,7 @@
   float: right;
   font-size: 16px;
   color: white;
-  background-color: #1F51E9;
+  background-color: rgb(49, 8, 83);
   border:1px solid white;
   text-align: center;
   padding: 14px 16px;
@@ -139,14 +139,16 @@ h6:first-line{
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 </head>
 <tbody>
+  <div class="container">
 <table class="table table-dark table-striped">
   <style>.dataframe th{
-  background:#3f577c; 
+  background:rgb(49, 8, 83); 
   font-family:sans-serif; 
   color:white;
   text-align: center;
   justify-content: center;
   border:1px solid black;
+  margin-left: auto; 
 }td {
   text-align: center;
   vertical-align: bottom;
@@ -171,9 +173,11 @@ h6:first-line{
   overflow: auto;
 }
  </style>
+ 
 <td id="data_table"> {{ data_object | safe}} </td>
 <td id="data_table"> {{ data_described | safe}} </td>
 <td id="data_table"> {{ columnlist_described | safe}} </td>
+</div>
 {% if distribution %}
 <img src="data:image/png;base64,{{distribution | safe}}">
 {% endif %}

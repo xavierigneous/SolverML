@@ -114,12 +114,12 @@ h6:first-line{
 <tbody>
  <table class="table table-dark table-bordered table-striped">
   <style>.dataframe th{
-    background:#3f577c; 
+    background: rgb(49, 8, 83); 
     font-family:'Courier New', sans-serif; 
     color:white;
     text-align: center;
     justify-content: center;
-    border:1px solid black;
+    border:1px solid black;}
   </style>
 
   <form class="sidenav" action="" method="POST" id='colsel' name='colsel' class="waves-effect waves-light btn">
@@ -127,48 +127,48 @@ h6:first-line{
   
   {% for col in columns %}
     <th>{{ col.field |safe}}</td><p>({{ col.title | safe }})</p>
-        <input type="checkbox" class="cols" name="cols" value="{{ col.field }}"></input>
+        <input type="checkbox" class="cols" name="cols" value="{{ col.field }}"></input>  
   {% endfor %}
   </table>
     {% csrf_token %}
     <style type="text/css">
       .btn {
         border: 2px solid black;
-        background-color: white;
+        background-color: #a3f6d9;
         color: black;
         padding: 14px 28px;
         font-size: 16px;
         cursor: pointer;
       }
     </style>
-    <button type="submit" name="labelencode" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Label Encoding</button>
-    <button type="submit" name="ohencoder" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >One Hot Encoding</button>
-    <button type="submit" name="symbol_removal" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Symbol Removal</button>
-    <button type="submit" name="remove_outliers" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Remove Outlier</button>
-    <button type="submit" name="mean_outliers" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Mean Impute Outliers</button>
-    <button type="submit" name="median_outliers" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Median Impute Outliers</button>
-    <button type="submit" name="logtransform" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Log Transform</button>
-    <button type="submit" name="median_impute" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Median Impute</button>
-    <button type="submit" name="mean_impute" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Mean Impute</button>
+    <button type="submit" name="labelencode" class = "btn">Label Encoding</button>
+    <button type="submit" name="ohencoder" class = "waves-effect waves-light btn">One Hot Encoding</button>
+    <button type="submit" name="symbol_removal" class = 'btn' >Symbol Removal</button>
+    <button type="submit" name="remove_outliers" class = 'btn' >Remove Outlier</button>
+    <button type="submit" name="mean_outliers" class = 'btn' >Mean Impute Outliers</button>
+    <button type="submit" name="median_outliers" class = 'btn' >Median Impute Outliers</button>
+    <button type="submit" name="logtransform" class = 'btn' >Log Transform</button>
+    <button type="submit" name="median_impute" class = 'btn' >Median Impute</button>
+    <button type="submit" name="mean_impute" class = 'btn' >Mean Impute</button>
     </div>
-    <button type="submit" name="mode_impute" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Mode Impute</button>
+    <button type="submit" name="mode_impute" class = 'btn' >Mode Impute</button>
     </div>
-    <button type="submit" name="zero_impute" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Zero Impute</button>
-    <button type="submit" name="convert_to_int" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >To Integer</button>
-    <button type="submit" name="convert_to_float" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >To Float</button>
-    <button type="submit" name="feat_importance" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Feature Importance</button>
-    <button type="submit" name="multicoll" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >MultiCollinearity</button>
+    <button type="submit" name="zero_impute" class = 'btn' >Zero Impute</button>
+    <button type="submit" name="convert_to_int" class = 'btn' >To Integer</button>
+    <button type="submit" name="convert_to_float" class = 'btn' >To Float</button>
+    <button type="submit" name="feat_importance" class = 'btn' >Feature Importance</button>
+    <button type="submit" name="multicoll" class = 'btn' >MultiCollinearity</button>
     </div>
-    <button type="submit" name="drop_column" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Drop Column</button>
+    <button type="submit" name="drop_column" class = 'btn' >Drop Column</button>
     
     </div>
     <div>
-    <button type="submit" name="view_steps" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >View Steps</button>
-    <button type="submit" name="submit_steps" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Submit</button>
+    <button type="submit" name="view_steps" class = 'btn' >View Steps</button>
+    <button type="submit" name="submit_steps" class = 'btn' >Submit</button>
     &nbsp &nbsp &nbsp
-    <button type="submit" name="remove_steps" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Remove Steps</button>
+    <button type="submit" name="remove_steps" class = 'btn' >Remove Steps</button>
     &nbsp &nbsp &nbsp
-    <button type="submit" name="view_transform_data" class = "waves-effect waves-light btn" style = "background-color: #5DF364" >Transformed data</button>
+    <button type="submit" name="view_transform_data" class = 'btn' >Transformed data</button>
     </div>
 
   {% if feat_transforms %}
@@ -195,9 +195,11 @@ h6:first-line{
       {% endif %}
     {% endfor %}
   {% endif %}
+
+  <div class="container">
 <table class="table table-dark table-striped">
   <style>.dataframe th{
-  background:#3f577c; 
+  background: rgb(49, 8, 83); 
   font-family:sans-serif; 
   color:white;
   text-align: center;
@@ -242,7 +244,7 @@ h6:first-line{
   {% if outliers %}
   <img src="data:image/png;base64,{{outliers | safe}}">
   {% endif %}
-
+</div>
 </table>
 </tbody>
 </html>
