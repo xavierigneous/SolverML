@@ -1,11 +1,11 @@
 from django.urls import path
-from .views import home, login_page, datainput, dataview, transform, visual, modelling,ml_model, metrics_view, interpret, tuning, prediction
+from .views import home, SolverML, login_page, datainput, dataview, transform, visual, modelling,ml_model, metrics_view, interpret, tuning, prediction
 #, , regression, clustering
 from django.conf.urls.static import static
 from django.conf import settings
 urlpatterns = [
     path('homepage/',home, name='homepage'),
-    # path('SolverML/', login_page, name='login_page'),
+    path('SolverML/', SolverML, name='SolverML'),
     path('login/', login_page, name='login_page'),
     path('homepage/datainput/', datainput, name='datainput'),
     path('homepage/dataview/', dataview, name='dataview'),

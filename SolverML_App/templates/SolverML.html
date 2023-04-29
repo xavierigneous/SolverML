@@ -1,43 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>SolverML</title>
-   
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-   
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-</head>
-<body class="override">
-    <nav class="navbar navbar-inverse" role="navigation">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="/authentication/">SolverML</a>
+<html>
+	<head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <nav class="navbar navbar-inverse" role="navigation">
+            <div class="container">              
+                <div id="navbar" class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="/login">Login</a></li>
+                    </ul>
+                </div>
             </div>
-           
-            <div id="navbar" class="collapse navbar-collapse">
-                <ul class="nav navbar-nav navbar-right">
-                    <li><a href="/login">Login</a></li>
-                </ul>
+        </nav>
+
+
+		<title href="/SolverML">SolverML</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<style>
+			body {
+				background-image: url(https://cdna.artstation.com/p/assets/images/images/048/809/868/large/alamnash-noor-roza-brain13.jpg?1650991592);
+				background-repeat: repeat;
+				background-position: center top;
+				background-attachment: fixed;
+			}
+			h1 {
+				font-family: Helvetica, sans-serif;
+				color: #800af5;
+				text-align: Center;
+				font-variant: small-caps;
+				letter-spacing: 4px;
+			}
+            h4 {
+				font-family: Helvetica, sans-serif;
+				color: #2409d0;
+				text-align: Center;
+				font-variant: small-caps;
+				letter-spacing: 4px;
+                
+            }
+            a {
+				font-family: Helvetica, sans-serif;
+				color: #800af5;
+				text-align: Center;
+				font-variant: small-caps;
+				letter-spacing: 4px;
+                
+            }
+		</style>
+	</head>
+
+	<body>
+		<h1 href="/SolverML">SolverML</h1>
+        <br><br>
+        <div class="wrapper">
+            <div class="footer">
+                <h4>Developed by: <br><br>
+                    <a href="https://www.linkedin.com/in/vishwanath-kannan23" target="_blank">Vishwanath Kannan</a></h4>
             </div>
         </div>
-    </nav>
-   
-    <div class="container">
-        <div class="row">
-            {% block content %}{% endblock %}
-        </div>
-    </div>
-   
-    <footer>
-        <div class="container">
-        </div>
-    </footer>
-</body>
+
+	</body>
 </html>

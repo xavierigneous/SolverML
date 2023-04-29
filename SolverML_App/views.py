@@ -94,6 +94,8 @@ import getpass
 # user_name = getpass.getuser()
 # print('Welcome, ', user_name)
 
+def SolverML(request):
+    return render(request, 'SolverML.html')
 
 def login_page(request):
     if 'login' in request.POST and request.method == 'POST':
