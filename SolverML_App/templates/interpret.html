@@ -78,7 +78,7 @@
 <!-- onclick="history.back()-->
 <div class="navbar">
 <a name='back' onclick=history.back()>Back</a>
-<a href="{% url 'homepage' %}" name='homepage'>home</a>
+<a href="{% url 'homepage' %}" name='homepage'>Home</a>
 <a href="{% url 'dataview' %}" name='dataview'>Data</a>
 <a href="{% url 'transform' %}"name="transform">Transform</a>
 <a href="{% url 'visual' %}" name="visual">EDA</a>
@@ -88,7 +88,8 @@
 </div>
 
 
-<h2>Results</h2><a href="{% url 'model_fit' %}">Go to Modelling</a>
+<h2 style="color:white;">Results</h2>
+<a class="navbar" href="{% url 'model_fit' %}">Go to ML Modelling Page</a>
 <form method="POST">
     <style >
   p {
@@ -111,6 +112,8 @@
 }td {
   text-align: center;
   vertical-align: bottom;
+  color:white;
+  border:0.3px solid rgb(238, 17, 17);
 }
   </style>
 
