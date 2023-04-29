@@ -19,9 +19,9 @@
 		<style>
 			body {
 				background-image: url(https://cdna.artstation.com/p/assets/images/images/048/809/868/large/alamnash-noor-roza-brain13.jpg?1650991592);
-				background-repeat: repeat;
+				background-repeat: no-repeat;
 				background-position: center top;
-				background-attachment: fixed;
+				background-attachment: scroll;
 			}
 			h1 {
 				font-family: Helvetica, sans-serif;
@@ -33,7 +33,7 @@
             h4 {
 				font-family: Helvetica, sans-serif;
 				color: #2409d0;
-				text-align: Center;
+				text-align: right;
 				font-variant: small-caps;
 				letter-spacing: 4px;
                 
@@ -50,13 +50,19 @@
 	</head>
 
 	<body>
-		<h1 href="/SolverML">SolverML</h1>
+		<h1><a href="/SolverML">SolverML</a></h1>
         <br><br>
-        <div class="wrapper">
-            <div class="footer">
-                <h4>Developed by: <br><br>
-                    <a href="https://www.linkedin.com/in/vishwanath-kannan23" target="_blank">Vishwanath Kannan</a></h4>
-            </div>
+        <style type ="text/css" >
+            .footer{ 
+                position: fixed;     
+                text-align: center;    
+                bottom: 0px; 
+                width: 100%;
+            }  
+         </style>
+        <div class="footer">
+            <h4>Developed by: <br><br>
+                <a href="https://www.linkedin.com/in/vishwanath-kannan23" target="_blank">Vishwanath Kannan</a></h4>
         </div>
 
 	</body>

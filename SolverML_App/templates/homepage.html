@@ -82,7 +82,17 @@
 <a href="{% url 'interpret' %}" name="interpret">Interpret</a>
 <a href="{% url 'prediction' %}" name="prediction">Prediction</a>
 </div>
+
 <style type="text/css">
+  
+  .project_submit {
+  background: url("https://png.pngtree.com/png-vector/20191110/ourlarge/pngtree-right-arrow-vector-icon-white-transparent-background-png-image_1978016.jpg") no-repeat center center;
+  background-size: contain;
+  top: 50;
+  right: 50px;
+  width: 50px;
+  height: 50px;
+  }
   .submit_logo {
   background: url("https://cdn1.iconfinder.com/data/icons/arrows-vol-1-5/24/Forward2-512.png") no-repeat center center;
   background-size: contain;
@@ -107,24 +117,40 @@
   width: 30px;
   height: 30px;
   }
+  .centered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  
+  -webkit-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  border: rgba(250, 251, 250, 0.618) 1px solid;
+  padding: 20px;
+  font-size: 20px;
+  z-index: 100;
+}
 </style>
+
 <form method="POST" enctype='multipart/form-data'  id='new_project'>
+  
   <button type="submit" class ="logout_icon" name="logout" title="Logout" style = "background-color: #F9FCF9" ></button>
     {% csrf_token %}
+  <div class="centered">
     <div>
-        <label >Problem Statement: </label>
+        <label style ="color: #e01268">Problem Statement: </label>
         <input id="problem_name" type="text" name="problem_name">
         <br><br>
     </div>
-    <div>Select Problem Type
+    <div><a style ="color: #e01268">Select Problem Type</a>
         <select name="problem_state_type" id="problem_state_type">
             <option value="regression">Regression</option>
             <option value="classification">Classification</option>
         </select>
     </div>
-<button type="submit" name="project_submit" style = "background-color: #F9FCF9" >Submit</button>
-
-
+    <br>
+<button type="submit" class="project_submit" name="project_submit" style = "background-color: #F9FCF9" title="Submit"></button>
   
 
 <tbody>
@@ -136,37 +162,18 @@
   color:white;
   text-align: center;
   justify-content: center;
-  border:1px solid black;
+  border:1px solid rgb(167, 16, 16);
 }td {
   background:#E5E2F8;
   font-family:Verdana, sans-serif;
   text-align: center;
-  border:0.3px solid black;
+  border:0.3px solid rgb(238, 17, 17);
 }
 tr {
   border:1px solid black;
 }
 
 </style>
-<!--
-  <thead>
-      <tr>
-          <th>Project ID</th>
-          <th>Project Name</th>
-          <th>Problem Type</th>
-      </tr>
-  </thead>
-
-  {% for row in projects %}
-      <tr>
-          <td>{{row.project_id}}</td>
-          <td>{{row.project_name}}</td>
-          <td>{{row.problem_type}}</td>
-          <td><a href="'{% url 'datainput' %}'"><button type="submit" class='submit_logo' value='{{row.project_id}}' name="select_project"></button></a></td>
-          <td><button type="submit" class='delete_icon' value='{{row.project_id}}' name="delete_project"></button></td>
-      </tr>
-  {% endfor %}
--->
 
   <thead>
       <tr>
@@ -187,8 +194,7 @@ tr {
   {% endif %}
   </tr>
 {% endfor %}
-
-
+</div>
 </form>
 </table>
 </tbody>
