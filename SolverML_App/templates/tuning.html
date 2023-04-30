@@ -18,7 +18,7 @@
   float: right;
   font-size: 16px;
   color: white;
-  background-color: #1F51E9;
+  background-color: rgb(49, 8, 83);
   border:1px solid white;
   text-align: center;
   padding: 14px 16px;
@@ -75,16 +75,37 @@
 }</style>
  <body>
 
-<div class="navbar">
-<a name='back' onclick=history.back()>Back</a>
-<a href="{% url 'homepage' %}" name='homepage'>home</a>
-<a href="{% url 'dataview' %}" name='dataview'>Data</a>
-<a href="{% url 'transform' %}"name="transform">Transform</a>
-<a href="{% url 'visual' %}" name="visual">EDA</a>
-<a href="{% url 'modelling' %}" name="modelling">Modelling</a>
-<a href="{% url 'interpret' %}" name="interpret">Interpret</a>
-<a href="{% url 'prediction' %}" name="prediction">Prediction</a>
-</div>
+  <script>
+    function w3_open() {
+      // document.getElementById("new_project").style.marginLeft = "none";
+  document.getElementById("mySidebar").style.width = "10%";
+  document.getElementById("mySidebar").style.display = "block";
+  document.getElementById("openNav").style.display = 'none';
+  // document.getElementsByName("homepage").textContent =
+  }
+  function w3_close() {
+  // document.getElementById("new_project").style.marginLeft = "0%";
+  document.getElementById("mySidebar").style.display = "none";
+  document.getElementById("openNav").style.display = "inline-block";
+  }
+    </script>
+   <link rel="icon" href="static/projectname/favicon.ico">
+   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <div class="w3">
+    <button id="openNav" class="w3-button w3-deep-purple w3-xlarge" onclick="w3_open()">&#9776;</button>
+  </div>
+  <div class="w3-sidebar w3-bar-block w3-deep-purple w3-animate-left" id="mySidebar" style="display:none">
+    <button class="w3-bar-item w3-button w3-large w3-animate-right w3-border-bottom  w3-hover-red"onclick="w3_close()">Close &times;</button>
+  <a href="{% url 'homepage' %}" name='homepage' class="w3-bar-item w3-button w3-border-bottom w3-hover-green">Home</a>
+  <a href="{% url 'datainput' %}" name='datainput' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data</a>
+  <a href="{% url 'transform' %}"name="transform" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Transform</a>
+  <a href="{% url 'visual' %}" name="visual" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">EDA</a>
+  <a href="{% url 'modelling' %}" name="visual" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Modelling</a>
+  <a href="{% url 'interpret' %}" name="interpret" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Interpret</a>
+  <a href="{% url 'prediction' %}" name="prediction" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Prediction</a>
+  </div>
+
 <hr>
 <div class="navbar">
 <a href="{% url 'modelling' %}">Go to Modelling</a>
@@ -100,7 +121,7 @@
   font-size: 16px;
   color: #535353;
   text-align: left;
-
+  }
 </style>
 <style>
 .slidecontainer {

@@ -17,7 +17,7 @@
       float: right;
       font-size: 16px;
       color: white;
-      background-color: #1F51E9;
+      background-color: rgb(49, 8, 83);
       border:1px solid white;
       text-align: center;
       padding: 14px 16px;
@@ -72,15 +72,35 @@
  
   </style>
 </body>
+  <script>
+    function w3_open() {
+      // document.getElementById("new_project").style.marginLeft = "10%";
+  document.getElementById("mySidebar").style.width = "10%";
+  document.getElementById("mySidebar").style.display = "block";
+  document.getElementById("openNav").style.display = 'none';
+}
+function w3_close() {
+  // document.getElementById("new_project").style.marginLeft = "0%";
+  document.getElementById("mySidebar").style.display = "none";
+  document.getElementById("openNav").style.display = "inline-block";
+}
+</script>
+
  <link rel="icon" href="static/projectname/favicon.ico">
-<div class="navbar">
-<a href="{% url 'homepage' %}" name='homepage'>Home</a>
-<a href="{% url 'datainput' %}" name='datainput'>Data</a>
-<a href="{% url 'transform' %}"name="transform">Transform</a>
-<a href="{% url 'visual' %}" name="visual">EDA</a>
-<a href="{% url 'modelling' %}" name="visual">Modelling</a>
-<a href="{% url 'interpret' %}" name="interpret">Interpret</a>
-<a href="{% url 'prediction' %}" name="prediction">Prediction</a>
+ <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <div class="w3">
+  <button id="openNav" class="w3-button w3-deep-purple w3-xlarge" onclick="w3_open()">&#9776;</button>
+</div>
+<div class="w3-sidebar w3-bar-block w3-deep-purple w3-animate-left" id="mySidebar" style="display:none">
+  <button class="w3-bar-item w3-button w3-large w3-animate-right w3-border-bottom"onclick="w3_close()">Close &times;</button>
+<a href="{% url 'homepage' %}" name='homepage' class="w3-bar-item w3-button w3-border-bottom">Home</a>
+<a href="{% url 'datainput' %}" name='datainput' class="w3-bar-item w3-button w3-border-bottom">Data</a>
+<a href="{% url 'transform' %}"name="transform" class="w3-bar-item w3-button w3-border-bottom">Transform</a>
+<a href="{% url 'visual' %}" name="visual" class="w3-bar-item w3-button w3-border-bottom">EDA</a>
+<a href="{% url 'modelling' %}" name="visual" class="w3-bar-item w3-button w3-border-bottom">Modelling</a>
+<a href="{% url 'interpret' %}" name="interpret" class="w3-bar-item w3-button w3-border-bottom">Interpret</a>
+<a href="{% url 'prediction' %}" name="prediction" class="w3-bar-item w3-button w3-border-bottom">Prediction</a>
 </div>
 
 <style type="text/css">
@@ -118,7 +138,7 @@
   height: 30px;
   }
   .centered {
-  position: fixed;
+  position: relative;
   top: 50%;
   left: 50%;
   
@@ -126,10 +146,33 @@
   -moz-transform: translate(-50%, -50%);
   -o-transform: translate(-50%, -50%);
   -ms-transform: translate(-50%, -50%);
-  border: rgba(250, 251, 250, 0.618) 1px solid;
+  /* border: rgba(250, 251, 250, 0.618) 1px solid; */
   padding: 20px;
   font-size: 20px;
   z-index: 100;
+}
+.div-left{
+  position: fixed;
+  top: 200%;
+  right: 60%;
+  float:left;
+  padding-left:10px;
+  border: rgba(250, 251, 250, 0.618) 1px solid;
+  padding: 20px;
+  font-size: 20px;
+  z-index: 30;
+}
+.div-right{
+  position: fixed ;
+  top: 200%;
+  left: 50%;
+  float:right;
+  padding-right:10px;
+  border: rgba(250, 251, 250, 0.618) 1px solid;
+  padding: 20px;
+  font-size: 20px;
+  z-index: 30;
+
 }
 </style>
 
@@ -138,7 +181,9 @@
   <button type="submit" class ="logout_icon" name="logout" title="Logout" style = "background-color: #F9FCF9" ></button>
     {% csrf_token %}
   <div class="centered">
+  <div class="div-left">
     <div>
+      <h3 style="text-align: center;color: #f9f0f4; background-color: #1F51E9;">New Project</h3>
         <label style ="color: #e01268">Problem Statement: </label>
         <input id="problem_name" type="text" name="problem_name">
         <br><br>
@@ -150,50 +195,52 @@
         </select>
     </div>
     <br>
-<button type="submit" class="project_submit" name="project_submit" style = "background-color: #F9FCF9" title="Submit"></button>
-  
+  <button type="submit" class="project_submit" name="project_submit" style = "background-color: #F9FCF9" title="Submit"></button>
+</div>
+  <div class="div-right">
+    <h3 style="text-align: center;color: #f9f0f4; background-color: #1F51E9;">Existing Project</h3>
+  <tbody>
+  <table class="table table-dark table-striped">
+    <style> 
+    th{
+    background:#3f577c;
+    font-family:sans-serif;
+    color:white;
+    text-align: center;
+    justify-content: center;
+    border:1px solid rgb(167, 16, 16);
+  }td {
+    background:#E5E2F8;
+    font-family:Verdana, sans-serif;
+    text-align: center;
+    border:0.3px solid rgb(238, 17, 17);
+  }
+  tr {
+    border:1px solid black;
+  }
 
-<tbody>
-<table class="table table-dark table-striped">
-  <style> 
-  th{
-  background:#3f577c;
-  font-family:sans-serif;
-  color:white;
-  text-align: center;
-  justify-content: center;
-  border:1px solid rgb(167, 16, 16);
-}td {
-  background:#E5E2F8;
-  font-family:Verdana, sans-serif;
-  text-align: center;
-  border:0.3px solid rgb(238, 17, 17);
-}
-tr {
-  border:1px solid black;
-}
+  </style>
 
-</style>
+      <thead>
+        <tr>
+            <th>Project ID</th>
+            <th>Project Name</th>
+            <th>Problem Type</th>
+        </tr>
 
-  <thead>
+    {% for rows in projects %}
       <tr>
-          <th>Project ID</th>
-          <th>Project Name</th>
-          <th>Problem Type</th>
+      {% for i,j in rows.items %}
+          <td>{{ j }}</td>
+      {% endfor %}
+      <td><button type="submit" class='submit_logo' value='{{rows.project_id}}' name="select_project" title='Open Project' href = "{% url 'datainput' %}"></button></a></td>
+      <td><button type="submit" class='delete_icon' value='{{rows.project_id}}' name="delete_project" title='Delete Project'></button></td>
+      {% if rows.project_id == current_project %}
+        <td><img src="https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/64x64/hammer.png" title='Current Project' style="width:30px;height:30px;"></td>
+      {% endif %}
       </tr>
-
-{% for rows in projects %}
-  <tr>
-  {% for i,j in rows.items %}
-      <td>{{ j }}</td>
-  {% endfor %}
-  <td><button type="submit" class='submit_logo' value='{{rows.project_id}}' name="select_project" title='Open Project' href = "{% url 'datainput' %}"></button></a></td>
-  <td><button type="submit" class='delete_icon' value='{{rows.project_id}}' name="delete_project" title='Delete Project'></button></td>
-  {% if rows.project_id == current_project %}
-    <td><img src="https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/64x64/hammer.png" title='Current Project' style="width:30px;height:30px;"></td>
-  {% endif %}
-  </tr>
-{% endfor %}
+    {% endfor %}
+    </div>
 </div>
 </form>
 </table>
