@@ -88,7 +88,7 @@ reg_cross_valid=['Kfold','Shuffle Split']
 
 # Create your views here.
 global nrows, temp_file, user_name
-temp_dir = os.path.join(os.getcwd(), 'SolverML_App/temp_data')
+temp_dir = os.path.join(os.getcwd(), 'temp_data')
 #print(temp_dir)
 import getpass
 # user_name = getpass.getuser()
@@ -196,7 +196,7 @@ def datainput(request):
             project_id = get_current_project(user_name)
             print('Project Id: ',project_id)
             df = file_type.get(file_name.split('.')[-1])(x, na_values=' ')
-            file_upload(df,project_id,file_name)
+            file_upload(user_name, df,project_id,file_name)
 
         project_id = get_current_project(user_name)
         query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
@@ -692,444 +692,411 @@ def remove_outlier_IQR(df):
 
 def transform(request):
     user_name = request.session['user_id']
-    if 'labelencode' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        print('Label Encoding in Progress')
-        feats = request.POST.getlist('cols')
-        print(data_in.loc[:, feats].head())
-        le = preprocessing.LabelEncoder()
-        d = defaultdict(preprocessing.LabelEncoder)
-        # data_in.loc[:, feats] = data_in.loc[:, feats].apply(lambda x: d[x.name].fit_transform(x))
-        # store_temp_operation(d,feats)
-        op = d.default_factory.__name__
-        key = [op + '_' + x for x in feats if not str(x) == "nan"]
-        print(key)
-        df=use_operation()
-        if not key in df['Key'].to_list():
-            print('New Operation')
-            temp = pd.DataFrame(data_in.loc[:, feats])
-            temp.loc[:, :] = temp.loc[:, feats].apply(lambda x: d[x.name].fit_transform(x))
-            op = type(list(d.values())[0]).__name__
-            temp = temp.loc[:, :].add_suffix('_' + str(op))
-            print(temp)
-            print(pd.concat([data_in, temp], axis=1))
-            temp = pd.concat([data_in, temp], axis=1)
-            store_temp_operation(d, feats)
-        else:
-            messages.error(request, 'Operation Already Performed')
-            print('Operation already performed')
-            temp = data_in.copy()
-
-
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': temp.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns
-        }
-        # print('Print after view: ',request.POST.getlist('cols'))
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
-    if 'ohencoder' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        print('One Hot Encoding in Progress on : ', feats)
-        print(onehotencode(data_in, feats))
-        print(onehotencode.__name__)
-        # data_in=onehotencode(data_in,feats)
-        # store_operation(onehotencode,feats)
-
-        temp = pd.DataFrame(data_in.loc[:, feats])
-        temp = onehotencode(temp, feats)
-        # op=onehotencode.__name__
-        # temp=temp.loc[:,:].add_suffix(op)
-        print(temp)
-        print(pd.concat([data_in, temp], axis=1))
-        temp = pd.concat([data_in, temp], axis=1)
-        store_temp_operation(onehotencode, feats)
-        # update_train_file(temp_file, data_in)
-        # data_in.to_csv(temp_file, index=False)
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': temp.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns
-        }
-        return render(request, 'transform.html', transform_data)
-    if 'date_time' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        print('Date Time Conversion in Progress on : ', feats)
-        print(data_in.loc[:, feats].head())
-        date_format = Pipeline([('date_format', FunctionTransformer(datetimeformat))])
-        date_format_pipeline = ColumnTransformer([
-            ('_date_formated', Pipeline([('date_format', date_format)]), feats)])
-        data_in.loc[:, feats] = date_format_pipeline.fit_transform(data_in.loc[:, feats])
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns
-        }
-        # data_in.to_csv(temp_file, index=False)
-        update_train_file(temp_file, data_in)
-        return render(request, 'transform.html', transform_data)
-
-    if 'drop_column' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        project_id=get_current_project(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        print('Removing : ', feats)
-        #data_in = data_in.drop(feats, axis=1)
-        # print(data_in.loc[:,feats].head())
-        temporary_data=data_in.loc[:,feats]
-        temporary(temporary_data)
-        data_in=drop_columns(data_in,feats)
-        store_temp_operation(drop_columns, feats)
-        operations = use_operation()
-        temp_operations = retrieve_temp_operation().reset_index(drop=True)
-        print('vdvddvdvdvd',temp_operations)
-        operations = pd.concat([operations, temp_operations], ignore_index=True)
-        print('Concat Operation :',operations)
-        store_all_operation(temp_file, operations)
-        target = get_target(user_name, temp_file,project_id)
-        selected_columns = pd.DataFrame({'Selected by SelectKBest': data_in.columns})
-        print(selected_columns)
-
-        save_columns_selected(temp_file, selected_columns.to_json())
-        update_train_file(temp_file, data_in)
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns
-        }
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
-    if 'symbol_removal' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        print('Symbol Removal in Progress on : ', feats)
-
-        symbol_removal = Pipeline([('symbol', FunctionTransformer(symbol_remove))])
-        symbol_removal_pipeline = ColumnTransformer([
-            ('_symbol_removed', Pipeline([('symbol_removal', symbol_removal)]), feats)])
-        print(symbol_removal)
-        data_in.loc[:, feats] = symbol_removal_pipeline.fit_transform(data_in.loc[:, feats])
-        store_operation(symbol_removal_pipeline, feats)
-        update_train_file(temp_file, data_in)
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns
-        }
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
-    if 'logtransform' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        
-        feats = request.POST.getlist('cols')
-        log_transform = Pipeline([('logtransform',
-                                   FunctionTransformer(log.log_transform, inverse_func=log.log_inverse_transform,
-                                                       check_inverse=True))])
-        log_transform_pipeline = ColumnTransformer([
-            ('_log', Pipeline([('log_transform', log_transform)]), feats)])
-        
-        temp = pd.DataFrame(data_in.loc[:, feats])
-        if not temp.isna().any().any():
-            print('Log Transform in Progress')
-            op = log_transform_pipeline.transformers[0][0]
-            key = [[op + '_' + x for x in feats if not str(x) == "nan"]]
+    print(request.POST)
+    if 'submit_transformation' in request.POST and request.method == "POST":
+        print(request.POST['select_transformation'])
+        operation_chosen = request.POST['select_transformation']
+        print("Operation Chosen: ", operation_chosen)
+        if 'Label Encoding' in operation_chosen:
+            # print('Requests: ',request.POST)
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            print('Label Encoding in Progress')
+            feats = request.POST.getlist('cols')
+            print(data_in.loc[:, feats].head())
+            le = preprocessing.LabelEncoder()
+            d = defaultdict(preprocessing.LabelEncoder)
+            # data_in.loc[:, feats] = data_in.loc[:, feats].apply(lambda x: d[x.name].fit_transform(x))
+            # store_temp_operation(d,feats)
+            op = d.default_factory.__name__
+            key = [op + '_' + x for x in feats if not str(x) == "nan"]
             print(key)
-            df=use_operation()
+            df=use_operation(user_name)
             if not key in df['Key'].to_list():
                 print('New Operation')
-                temp.loc[:, :] = log_transform_pipeline.fit_transform(temp.loc[:, :])
-                temp = temp.loc[:, :].add_suffix(op)
+                temp = pd.DataFrame(data_in.loc[:, feats])
+                temp.loc[:, :] = temp.loc[:, feats].apply(lambda x: d[x.name].fit_transform(x))
+                op = type(list(d.values())[0]).__name__
+                temp = temp.loc[:, :].add_suffix('_' + str(op))
                 print(temp)
-                #print(pd.concat([data_in, temp], axis=1))
-                store_temp_operation(log_transform_pipeline, feats)
+                print(pd.concat([data_in, temp], axis=1))
                 temp = pd.concat([data_in, temp], axis=1)
+                store_temp_operation(d, feats)
             else:
                 messages.error(request, 'Operation Already Performed')
                 print('Operation already performed')
                 temp = data_in.copy()
-        else:
-            print('Not happening')
-            messages.error(request, 'Null Values Found in ',feats)
-            messages.error(request, feats)
-            temp = data_in.copy()
-        print(temp)
-        # update_train_file(temp_file, data_in)
-        columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
-        transform_data = {
-            'transform_data': temp.head(20).to_html(index=False, index_names=False),
-            'columns': columns,
-        }
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
-
-    if 'remove_outliers' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        remove_outliers = Pipeline([('remove_outliers',
-                           FunctionTransformer(remove_outlier_IQR))])
-        remove_outliers_pipeline = ColumnTransformer([
-            ('remove_outliers', Pipeline([('remove_outliers', remove_outliers)]), feats)])
-
-        data_in[feats]=remove_outliers_pipeline.fit_transform(data_in[feats])
-        print('Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
-        messages.success(request, 'Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
-        data_in=data_in.dropna(subset=feats,axis=0)
-        store_temp_operation(remove_outliers_pipeline, feats)
-        plt.clf()
-        #sns.boxplot(data_in[feats])  # , ax=ax)
-        data_in.boxplot(column=feats)
-        plt.tight_layout()
-        distribution = plot()
-        # print(Zscore_outlier(data_in.loc[:,feats]))
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns,
-            'outliers': distribution
-        }
-        print('Print after view: ', request.POST.getlist('cols'))
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
-
-    if 'median_outliers' in request.POST and request.method == "POST":
-        
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        remove_outliers = Pipeline([('remove_outliers',
-                           FunctionTransformer(remove_outlier_IQR))])
-        remove_outliers_pipeline = ColumnTransformer([
-            ('remove_outliers', Pipeline([('median_impute_outliers', remove_outliers)]), feats)])
-
-        data_in[feats]=see_outliers.fit_transform(data_in[feats])
-        print('Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
-        store_temp_operation(remove_outliers, feats)
-        plt.clf()
-        #sns.boxplot(data_in[feats])  # , ax=ax)
-        data_in.boxplot(column=feats)
-        plt.tight_layout()
-        distribution = plot()
-        # print(Zscore_outlier(data_in.loc[:,feats]))
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns,
-            'outliers': distribution
-        }
-        print('Print after view: ', request.POST.getlist('cols'))
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
-
-    if 'mean_outliers' in request.POST and request.method == "POST":
-        
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        see_outliers = Pipeline([('int_transform',
-                           FunctionTransformer(remove_outlier_IQR)),
-                         ('mean_impute', SimpleImputer(strategy='mean',add_indicator=False))])
-        see_outliers_pipeline = ColumnTransformer([
-            ('_outliers', Pipeline([('mean_impute_outliers', see_outliers)]), feats)])
-
-        data_in[feats]=see_outliers.fit_transform(data_in[feats])
-        print('Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
-        store_temp_operation(see_outliers_pipeline, feats)
-        plt.clf()
-        #sns.boxplot(data_in[feats])  # , ax=ax)
-        data_in.boxplot(column=feats)
-        plt.tight_layout()
-        distribution = plot()
-        # print(Zscore_outlier(data_in.loc[:,feats]))
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns,
-            'outliers': distribution
-        }
-        print('Print after view: ', request.POST.getlist('cols'))
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
 
 
-    if 'convert_to_int' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        print('Converting to Integer\n')
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns
+            }
+            # print('Print after view: ',request.POST.getlist('cols'))
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+        if 'One Hot Encoding' in operation_chosen:
+            # print('Requests: ',request.POST)
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            print('One Hot Encoding in Progress on : ', feats)
+            print(onehotencode(data_in, feats))
+            print(onehotencode.__name__)
+            # data_in=onehotencode(data_in,feats)
+            # store_operation(onehotencode,feats)
 
-        int_transform = Pipeline([('int_transform',
-                                   FunctionTransformer(type_change.to_int))])
-        int_transform_pipeline = ColumnTransformer([
-            ('_int', Pipeline([('int_transform', int_transform)]), feats)])
-
-        op = int_transform_pipeline.transformers[0][0]
-        temp = pd.DataFrame(data_in.loc[:, feats])
-        temp.loc[:, :] = int_transform_pipeline.fit_transform(temp.loc[:, :])
-        temp = temp.loc[:, :].add_suffix(op)
-        temp = pd.concat([data_in, temp], axis=1)
-        print('Final Concat: ',temp)
-        store_temp_operation(int_transform_pipeline, feats)
-        print(temp.loc[:, feats])
-
-        columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
-        transform_data = {
-            'transform_data': temp.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns,
-            # 'distribution':distribution
-        }
-        print('Print after view: ', request.POST.getlist('cols'))
-        #update_train_file(temp_file, data_in)
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
-
-    if 'convert_to_float' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        print('Converting to Float\n')
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-
-        float_transform = Pipeline([('float_transform',
-                                   FunctionTransformer(type_change.to_float))])
-        float_transform_pipeline = ColumnTransformer([
-            ('_float', Pipeline([('float_transform', float_transform)]), feats)])
-
-
-        op = float_transform_pipeline.transformers[0][0]
-        temp = pd.DataFrame(data_in.loc[:, feats])
-        temp.loc[:, :] = float_transform_pipeline.fit_transform(temp.loc[:, :])
-        temp = temp.loc[:, :].add_suffix(op)
-        temp = pd.concat([data_in, temp], axis=1)
-        print('Final Concat: ',temp)
-        store_temp_operation(float_transform_pipeline, feats)
-        print(temp.loc[:, feats])
-
-        columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
-        transform_data = {
-            'transform_data': temp.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns,
-            # 'distribution':distribution
-        }
-        print('Print after view: ', request.POST.getlist('cols'))
-        #update_train_file(temp_file, data_in)
-        return render(request, 'transform.html', transform_data)
-    
-    if 'convert_to_string' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        print('Converting to String\n')
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-
-        int_transform = Pipeline([('string_transform',
-                                   FunctionTransformer(type_change.to_string))])
-        int_transform_pipeline = ColumnTransformer([
-            ('_string', Pipeline([('string_transform', int_transform)]), feats)])
-
-        op = int_transform_pipeline.transformers[0][0]
-        temp = pd.DataFrame(data_in.loc[:, feats])
-        temp.loc[:, :] = int_transform_pipeline.fit_transform(temp.loc[:, :])
-        temp = temp.loc[:, :].add_suffix(op)
-        temp = pd.concat([data_in, temp], axis=1)
-        print('Final Concat: ',temp)
-        store_temp_operation(int_transform_pipeline, feats)
-        print(temp.loc[:, feats])
-
-        columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
-        transform_data = {
-            'transform_data': temp.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns,
-            # 'distribution':distribution
-        }
-        print('Print after view: ', request.POST.getlist('cols'))
-        update_train_file(temp_file, data_in)
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
-
-    if 'median_impute' in request.POST and request.method == "POST":
-        print('Median Imputation\n')
-        temp_file = current_file(user_name)
-        # data_in = pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        print(data_in.loc[:, feats])
-
-        impute_pipeline = ColumnTransformer([
-            ('_median_imputed', Pipeline([('median_impute', SimpleImputer(strategy='median', add_indicator=False))]), feats)])
-        
-
-        op = impute_pipeline.transformers[0][0]
-        key = [[op + '_' + x for x in feats if not str(x) == "nan"]]
-        print(key)
-        df=use_operation()
-        if not key in df['Key'].to_list():
             temp = pd.DataFrame(data_in.loc[:, feats])
-            temp.loc[:, :] = impute_pipeline.fit_transform(temp.loc[:, :])
+            temp = onehotencode(temp, feats)
+            # op=onehotencode.__name__
+            # temp=temp.loc[:,:].add_suffix(op)
+            print(temp)
+            print(pd.concat([data_in, temp], axis=1))
+            temp = pd.concat([data_in, temp], axis=1)
+            store_temp_operation(onehotencode, feats)
+            # update_train_file(temp_file, data_in)
+            # data_in.to_csv(temp_file, index=False)
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns
+            }
+            return render(request, 'transform.html', transform_data)
+        if 'date_time' in operation_chosen:
+            # print('Requests: ',request.POST)
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            print('Date Time Conversion in Progress on : ', feats)
+            print(data_in.loc[:, feats].head())
+            date_format = Pipeline([('date_format', FunctionTransformer(datetimeformat))])
+            date_format_pipeline = ColumnTransformer([
+                ('_date_formated', Pipeline([('date_format', date_format)]), feats)])
+            data_in.loc[:, feats] = date_format_pipeline.fit_transform(data_in.loc[:, feats])
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns
+            }
+            # data_in.to_csv(temp_file, index=False)
+            update_train_file(temp_file, data_in)
+            return render(request, 'transform.html', transform_data)
+
+        if 'drop_column' in operation_chosen:
+            # print('Requests: ',request.POST)
+            temp_file = current_file(user_name)
+            project_id=get_current_project(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            print('Removing : ', feats)
+            #data_in = data_in.drop(feats, axis=1)
+            # print(data_in.loc[:,feats].head())
+            temporary_data=data_in.loc[:,feats]
+            temporary(temporary_data)
+            data_in=drop_columns(data_in,feats)
+            store_temp_operation(drop_columns, feats)
+            operations = use_operation(user_name)
+            temp_operations = retrieve_temp_operation().reset_index(drop=True)
+            print('vdvddvdvdvd',temp_operations)
+            operations = pd.concat([operations, temp_operations], ignore_index=True)
+            print('Concat Operation :',operations)
+            store_all_operation(temp_file, operations)
+            target = get_target(user_name, temp_file,project_id)
+            selected_columns = pd.DataFrame({'Selected by SelectKBest': data_in.columns})
+            print(selected_columns)
+
+            save_columns_selected(temp_file, selected_columns.to_json())
+            update_train_file(temp_file, data_in)
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns
+            }
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+        if 'symbol_removal' in operation_chosen:
+            # print('Requests: ',request.POST)
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            print('Symbol Removal in Progress on : ', feats)
+
+            symbol_removal = Pipeline([('symbol', FunctionTransformer(symbol_remove))])
+            symbol_removal_pipeline = ColumnTransformer([
+                ('_symbol_removed', Pipeline([('symbol_removal', symbol_removal)]), feats)])
+            print(symbol_removal)
+            data_in.loc[:, feats] = symbol_removal_pipeline.fit_transform(data_in.loc[:, feats])
+            store_operation(symbol_removal_pipeline, feats)
+            update_train_file(temp_file, data_in)
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns
+            }
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+        if 'Log Transform' in operation_chosen:
+            # print('Requests: ',request.POST)
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            
+            feats = request.POST.getlist('cols')
+            log_transform = Pipeline([('logtransform',
+                                    FunctionTransformer(log.log_transform, inverse_func=log.log_inverse_transform,
+                                                        check_inverse=True))])
+            log_transform_pipeline = ColumnTransformer([
+                ('_log', Pipeline([('log_transform', log_transform)]), feats)])
+            
+            temp = pd.DataFrame(data_in.loc[:, feats])
+            if not temp.isna().any().any():
+                print('Log Transform in Progress')
+                op = log_transform_pipeline.transformers[0][0]
+                key = [[op + '_' + x for x in feats if not str(x) == "nan"]]
+                print(key)
+                df=use_operation(user_name)
+                if not key in df['Key'].to_list():
+                    print('New Operation')
+                    temp.loc[:, :] = log_transform_pipeline.fit_transform(temp.loc[:, :])
+                    temp = temp.loc[:, :].add_suffix(op)
+                    print(temp)
+                    #print(pd.concat([data_in, temp], axis=1))
+                    store_temp_operation(log_transform_pipeline, feats)
+                    temp = pd.concat([data_in, temp], axis=1)
+                else:
+                    messages.error(request, 'Operation Already Performed')
+                    print('Operation already performed')
+                    temp = data_in.copy()
+            else:
+                print('Not happening')
+                messages.error(request, 'Null Values Found in ',feats)
+                messages.error(request, feats)
+                temp = data_in.copy()
+            print(temp)
+            # update_train_file(temp_file, data_in)
+            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False),
+                'columns': columns,
+            }
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+
+        if 'Remove Outlier' in operation_chosen:
+            # print('Requests: ',request.POST)
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            remove_outliers = Pipeline([('remove_outliers',
+                            FunctionTransformer(remove_outlier_IQR))])
+            remove_outliers_pipeline = ColumnTransformer([
+                ('remove_outliers', Pipeline([('remove_outliers', remove_outliers)]), feats)])
+
+            data_in[feats]=remove_outliers_pipeline.fit_transform(data_in[feats])
+            print('Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
+            messages.success(request, 'Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
+            data_in=data_in.dropna(subset=feats,axis=0)
+            store_temp_operation(remove_outliers_pipeline, feats)
+            plt.clf()
+            #sns.boxplot(data_in[feats])  # , ax=ax)
+            data_in.boxplot(column=feats)
+            plt.tight_layout()
+            distribution = plot()
+            # print(Zscore_outlier(data_in.loc[:,feats]))
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns,
+                'outliers': distribution
+            }
+            print('Print after view: ', request.POST.getlist('cols'))
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+
+        if 'Median Impute Outliers' in operation_chosen:
+            
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            remove_outliers = Pipeline([('remove_outliers',
+                            FunctionTransformer(remove_outlier_IQR))])
+            remove_outliers_pipeline = ColumnTransformer([
+                ('remove_outliers', Pipeline([('median_impute_outliers', remove_outliers)]), feats)])
+
+            data_in[feats]=see_outliers.fit_transform(data_in[feats])
+            print('Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
+            store_temp_operation(remove_outliers, feats)
+            plt.clf()
+            #sns.boxplot(data_in[feats])  # , ax=ax)
+            data_in.boxplot(column=feats)
+            plt.tight_layout()
+            distribution = plot()
+            # print(Zscore_outlier(data_in.loc[:,feats]))
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns,
+                'outliers': distribution
+            }
+            print('Print after view: ', request.POST.getlist('cols'))
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+
+        if 'Mean Impute Outliers' in operation_chosen:
+            
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            see_outliers = Pipeline([('int_transform',
+                            FunctionTransformer(remove_outlier_IQR)),
+                            ('mean_impute', SimpleImputer(strategy='mean',add_indicator=False))])
+            see_outliers_pipeline = ColumnTransformer([
+                ('_outliers', Pipeline([('mean_impute_outliers', see_outliers)]), feats)])
+
+            data_in[feats]=see_outliers.fit_transform(data_in[feats])
+            print('Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
+            store_temp_operation(see_outliers_pipeline, feats)
+            plt.clf()
+            #sns.boxplot(data_in[feats])  # , ax=ax)
+            data_in.boxplot(column=feats)
+            plt.tight_layout()
+            distribution = plot()
+            # print(Zscore_outlier(data_in.loc[:,feats]))
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns,
+                'outliers': distribution
+            }
+            print('Print after view: ', request.POST.getlist('cols'))
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+
+
+        if 'convert_to_int' in operation_chosen:
+            # print('Requests: ',request.POST)
+            print('Converting to Integer\n')
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+
+            int_transform = Pipeline([('int_transform',
+                                    FunctionTransformer(type_change.to_int))])
+            int_transform_pipeline = ColumnTransformer([
+                ('_int', Pipeline([('int_transform', int_transform)]), feats)])
+
+            op = int_transform_pipeline.transformers[0][0]
+            temp = pd.DataFrame(data_in.loc[:, feats])
+            temp.loc[:, :] = int_transform_pipeline.fit_transform(temp.loc[:, :])
             temp = temp.loc[:, :].add_suffix(op)
             temp = pd.concat([data_in, temp], axis=1)
             print('Final Concat: ',temp)
-            store_temp_operation(impute_pipeline, feats)    
-        else:
-            messages.error(request, 'Operation Already Performed')
-            print('Operation already performed')
-            temp = data_in.copy()    
+            store_temp_operation(int_transform_pipeline, feats)
+            print(temp.loc[:, feats])
+
+            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns,
+                # 'distribution':distribution
+            }
+            print('Print after view: ', request.POST.getlist('cols'))
+            #update_train_file(temp_file, data_in)
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+
+        if 'convert_to_float' in operation_chosen:
+            # print('Requests: ',request.POST)
+            print('Converting to Float\n')
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+
+            float_transform = Pipeline([('float_transform',
+                                    FunctionTransformer(type_change.to_float))])
+            float_transform_pipeline = ColumnTransformer([
+                ('_float', Pipeline([('float_transform', float_transform)]), feats)])
 
 
-        columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
-        transform_data = {
-            'transform_data': temp.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns,
-            # 'distribution':distribution
-        }
-        print('Print after view: ', request.POST.getlist('cols'))
-        #update_train_file(temp_file, data_in)
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
+            op = float_transform_pipeline.transformers[0][0]
+            temp = pd.DataFrame(data_in.loc[:, feats])
+            temp.loc[:, :] = float_transform_pipeline.fit_transform(temp.loc[:, :])
+            temp = temp.loc[:, :].add_suffix(op)
+            temp = pd.concat([data_in, temp], axis=1)
+            print('Final Concat: ',temp)
+            store_temp_operation(float_transform_pipeline, feats)
+            print(temp.loc[:, feats])
 
-    if 'mean_impute' in request.POST and request.method == "POST":
-        print('Mean Imputation\n')
-        temp_file = current_file(user_name)
-        # data_in = pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        impute_pipeline = ColumnTransformer([
-            ('_mean_imputed', Pipeline([('mean_impute', SimpleImputer(strategy='mean', add_indicator=False))]), feats)])
+            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns,
+                # 'distribution':distribution
+            }
+            print('Print after view: ', request.POST.getlist('cols'))
+            #update_train_file(temp_file, data_in)
+            return render(request, 'transform.html', transform_data)
+        
+        if 'convert_to_string' in operation_chosen:
+            # print('Requests: ',request.POST)
+            print('Converting to String\n')
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
 
-        op = impute_pipeline.transformers[0][0]
-        key = [[op + '_' + x for x in feats if not str(x) == "nan"]]
-        print(key)
-        df=use_operation()
-        try:
+            int_transform = Pipeline([('string_transform',
+                                    FunctionTransformer(type_change.to_string))])
+            int_transform_pipeline = ColumnTransformer([
+                ('_string', Pipeline([('string_transform', int_transform)]), feats)])
+
+            op = int_transform_pipeline.transformers[0][0]
+            temp = pd.DataFrame(data_in.loc[:, feats])
+            temp.loc[:, :] = int_transform_pipeline.fit_transform(temp.loc[:, :])
+            temp = temp.loc[:, :].add_suffix(op)
+            temp = pd.concat([data_in, temp], axis=1)
+            print('Final Concat: ',temp)
+            store_temp_operation(int_transform_pipeline, feats)
+            print(temp.loc[:, feats])
+
+            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns,
+                # 'distribution':distribution
+            }
+            print('Print after view: ', request.POST.getlist('cols'))
+            update_train_file(temp_file, data_in)
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+
+        if 'Median Impute' in operation_chosen:
+            print('Median Imputation\n')
+            temp_file = current_file(user_name)
+            # data_in = pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            print(data_in.loc[:, feats])
+
+            impute_pipeline = ColumnTransformer([
+                ('_median_imputed', Pipeline([('median_impute', SimpleImputer(strategy='median', add_indicator=False))]), feats)])
+            
+
+            op = impute_pipeline.transformers[0][0]
+            key = [[op + '_' + x for x in feats if not str(x) == "nan"]]
+            print(key)
+            df=use_operation(user_name)
             if not key in df['Key'].to_list():
                 temp = pd.DataFrame(data_in.loc[:, feats])
                 temp.loc[:, :] = impute_pipeline.fit_transform(temp.loc[:, :])
@@ -1140,251 +1107,289 @@ def transform(request):
             else:
                 messages.error(request, 'Operation Already Performed')
                 print('Operation already performed')
-                temp = data_in.copy()
-        except:
-            print('Not happening')
-            messages.error(request, 'Mode Impute Unsuccessful')
-        print(data_in.loc[:, feats])
-        columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
-        transform_data = {
-            'transform_data': temp.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns,
-            # 'distribution':distribution
-        }
-        print('Print after view: ', request.POST.getlist('cols'))
-        #update_train_file(temp_file, data_in)
-        return render(request, 'transform.html', transform_data)
-    if 'mode_impute' in request.POST and request.method == "POST":
-        print('Mode Imputation\n')
-        temp_file = current_file(user_name)
-        # data_in = pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        print(data_in.loc[:, feats].dtypes)
-        #if data_in.loc[:, feats].dtypes.all()=='object':
-        impute_pipeline = ColumnTransformer([
-            ('_mode_imputed', Pipeline([('mode_impute', SimpleImputer(strategy='most_frequent', add_indicator=False))]),
-             feats)])
-        try:
-            
+                temp = data_in.copy()    
+
+
+            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns,
+                # 'distribution':distribution
+            }
+            print('Print after view: ', request.POST.getlist('cols'))
+            #update_train_file(temp_file, data_in)
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+
+        if 'Mean Impute' in operation_chosen:
+            print('Mean Imputation\n')
+            temp_file = current_file(user_name)
+            # data_in = pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            impute_pipeline = ColumnTransformer([
+                ('_mean_imputed', Pipeline([('mean_impute', SimpleImputer(strategy='mean', add_indicator=False))]), feats)])
+
             op = impute_pipeline.transformers[0][0]
             key = [[op + '_' + x for x in feats if not str(x) == "nan"]]
             print(key)
-            df=use_operation()
-            if not key in df['Key'].to_list():
-                temp = pd.DataFrame(data_in.loc[:, feats])
-                temp.loc[:, :] = impute_pipeline.fit_transform(temp.loc[:, :])
-                temp = temp.loc[:, :].add_suffix(op)
-                temp = pd.concat([data_in, temp], axis=1)
-                print('Final Concat: ',temp)
-                store_temp_operation(impute_pipeline, feats)
-            else:
-                messages.error(request, 'Operation Already Performed')
-                print('Operation already performed')
-                temp = data_in.copy()
-        except:
-            print('Not happening')
-            messages.error(request, 'Mode Impute Unsuccessful')
-        # store_temp_operation(impute_pipeline, feats)
-        print(temp.loc[:, feats])
+            df=use_operation(user_name)
+            try:
+                if not key in df['Key'].to_list():
+                    temp = pd.DataFrame(data_in.loc[:, feats])
+                    temp.loc[:, :] = impute_pipeline.fit_transform(temp.loc[:, :])
+                    temp = temp.loc[:, :].add_suffix(op)
+                    temp = pd.concat([data_in, temp], axis=1)
+                    print('Final Concat: ',temp)
+                    store_temp_operation(impute_pipeline, feats)    
+                else:
+                    messages.error(request, 'Operation Already Performed')
+                    print('Operation already performed')
+                    temp = data_in.copy()
+            except:
+                print('Not happening')
+                messages.error(request, 'Mode Impute Unsuccessful')
+            print(data_in.loc[:, feats])
+            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns,
+                # 'distribution':distribution
+            }
+            print('Print after view: ', request.POST.getlist('cols'))
+            #update_train_file(temp_file, data_in)
+            return render(request, 'transform.html', transform_data)
+        if 'Mode Impute' in operation_chosen:
+            print('Mode Imputation\n')
+            temp_file = current_file(user_name)
+            # data_in = pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            print(data_in.loc[:, feats].dtypes)
+            #if data_in.loc[:, feats].dtypes.all()=='object':
+            impute_pipeline = ColumnTransformer([
+                ('_mode_imputed', Pipeline([('mode_impute', SimpleImputer(strategy='most_frequent', add_indicator=False))]),
+                feats)])
+            try:
+                
+                op = impute_pipeline.transformers[0][0]
+                key = [[op + '_' + x for x in feats if not str(x) == "nan"]]
+                print(key)
+                df=use_operation(user_name)
+                if not key in df['Key'].to_list():
+                    temp = pd.DataFrame(data_in.loc[:, feats])
+                    temp.loc[:, :] = impute_pipeline.fit_transform(temp.loc[:, :])
+                    temp = temp.loc[:, :].add_suffix(op)
+                    temp = pd.concat([data_in, temp], axis=1)
+                    print('Final Concat: ',temp)
+                    store_temp_operation(impute_pipeline, feats)
+                else:
+                    messages.error(request, 'Operation Already Performed')
+                    print('Operation already performed')
+                    temp = data_in.copy()
+            except:
+                print('Not happening')
+                messages.error(request, 'Mode Impute Unsuccessful')
+            # store_temp_operation(impute_pipeline, feats)
+            print(temp.loc[:, feats])
 
-        # else:
-        # print('Object Type is not Categorical')
-        columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
-        transform_data = {
-            'transform_data': temp.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns,
-            # 'distribution':distribution
-        }
-        
-        return render(request, 'transform.html', transform_data)
+            # else:
+            # print('Object Type is not Categorical')
+            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns,
+                # 'distribution':distribution
+            }
+            
+            return render(request, 'transform.html', transform_data)
 
-    if 'zero_impute' in request.POST and request.method == "POST":
-        print('Mean Imputation\n')
-        temp_file = current_file(user_name)
-        # data_in = pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        feats = request.POST.getlist('cols')
-        zero_imp = SimpleImputer(missing_values=np.NaN, strategy='constant', fill_value=0)
-        zero_impute_pipeline = ColumnTransformer([
-            ('_zero_imputed', Pipeline([('zero_impute', zero_imp)]), feats)])
-        data_in.loc[:, feats] = zero_impute_pipeline.fit_transform(data_in.loc[:, feats])
-        store_temp_operation(zero_impute_pipeline, feats)
-        print(data_in.loc[:, feats])
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns,
-            # 'distribution':distribution
-        }
-        print('Print after view: ', request.POST.getlist('cols'))
-        # data_in.to_csv(temp_file, index=False)
-        update_train_file(temp_file, data_in)
-        return render(request, 'transform.html', transform_data)
+        if 'Zero Impute' in operation_chosen:
+            print('Mean Imputation\n')
+            temp_file = current_file(user_name)
+            # data_in = pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            feats = request.POST.getlist('cols')
+            zero_imp = SimpleImputer(missing_values=np.NaN, strategy='constant', fill_value=0)
+            zero_impute_pipeline = ColumnTransformer([
+                ('_zero_imputed', Pipeline([('zero_impute', zero_imp)]), feats)])
+            data_in.loc[:, feats] = zero_impute_pipeline.fit_transform(data_in.loc[:, feats])
+            store_temp_operation(zero_impute_pipeline, feats)
+            print(data_in.loc[:, feats])
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
+                , 'columns': columns,
+                # 'distribution':distribution
+            }
+            print('Print after view: ', request.POST.getlist('cols'))
+            # data_in.to_csv(temp_file, index=False)
+            update_train_file(temp_file, data_in)
+            return render(request, 'transform.html', transform_data)
 
-    if 'multicoll' in request.POST and request.method == "POST":
-        temp_file=current_file(user_name)
-        data_in = get_current_file(user_name, temp_file)
-        plt.clf()
-        feats = data_in.select_dtypes(exclude=[object]).columns.values
-        if len(feats) == 0:
-            feats = data_in.columns
-        print(feats)
-        vif_data = pd.DataFrame()
-        vif_data["Feature"] = feats
-        # calculating VIF for each feature
-        vif_data["VIF"] = [variance_inflation_factor(data_in.values, i)
-                           for i in range(len(data_in[feats].columns))]
-        print(vif_data)
-        vif_data=vif_data.sort_values(by="VIF",ascending=False)
-        plt.figure(figsize=(10, 10))
-        plots = sns.barplot(y=vif_data["Feature"], x=vif_data["VIF"])#, order=vif_data.sort_values(by="VIF")["Feature"])
-        for p in plots.patches:
-            plots.annotate("%.4f" % p.get_width(), xy=(p.get_width(), p.get_y() + p.get_height() / 2),
-                           xytext=(5, 0), textcoords='offset points', ha="left", va="center")
-        plt.tight_layout()
-        distribution = plot()
-        print(vif_data)
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False),
-             'columns': columns,
-             'distribution':distribution
-        }
-        return render(request, 'transform.html', transform_data)
+        if 'multicoll' in operation_chosen:
+            temp_file=current_file(user_name)
+            data_in = get_current_file(user_name, temp_file)
+            plt.clf()
+            feats = data_in.select_dtypes(exclude=[object]).columns.values
+            if len(feats) == 0:
+                feats = data_in.columns
+            print(feats)
+            vif_data = pd.DataFrame()
+            vif_data["Feature"] = feats
+            # calculating VIF for each feature
+            vif_data["VIF"] = [variance_inflation_factor(data_in.values, i)
+                            for i in range(len(data_in[feats].columns))]
+            print(vif_data)
+            vif_data=vif_data.sort_values(by="VIF",ascending=False)
+            plt.figure(figsize=(10, 10))
+            plots = sns.barplot(y=vif_data["Feature"], x=vif_data["VIF"])#, order=vif_data.sort_values(by="VIF")["Feature"])
+            for p in plots.patches:
+                plots.annotate("%.4f" % p.get_width(), xy=(p.get_width(), p.get_y() + p.get_height() / 2),
+                            xytext=(5, 0), textcoords='offset points', ha="left", va="center")
+            plt.tight_layout()
+            distribution = plot()
+            print(vif_data)
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': data_in.head(20).to_html(index=False, index_names=False),
+                'columns': columns,
+                'distribution':distribution
+            }
+            return render(request, 'transform.html', transform_data)
 
-    if 'feat_importance' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        target = get_target(user_name, temp_file,project_id)
-        print(target)
-        transform_data = pd.DataFrame({'Correlation': data_in.corr()[target]})
-        transform_data = transform_data.rename_axis('Columns').reset_index(inplace=False)
+        if 'feat_importance' in operation_chosen:
+            # print('Requests: ',request.POST)
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            target = get_target(user_name, temp_file,project_id)
+            print(target)
+            transform_data = pd.DataFrame({'Correlation': data_in.corr()[target]})
+            transform_data = transform_data.rename_axis('Columns').reset_index(inplace=False)
 
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        transform_data = {
-            'transform_data': transform_data.to_html(index=False, index_names=False)
-            , 'columns': columns,
-        }
-        print('Print after view: ', request.POST.getlist('cols'))
-        # data_in.to_csv(temp_file, index=False)
-        return render(request, 'transform.html', transform_data)
-    if 'view_steps' in request.POST and request.method == "POST":
-        temp_file = current_file(user_name)
-        # transform=pd.read_csv(temp_file)
-        transform = get_current_file(user_name, temp_file)
-        columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            transform_data = {
+                'transform_data': transform_data.to_html(index=False, index_names=False)
+                , 'columns': columns,
+            }
+            print('Print after view: ', request.POST.getlist('cols'))
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+        if 'view_steps' in operation_chosen:
+            temp_file = current_file(user_name)
+            # transform=pd.read_csv(temp_file)
+            transform = get_current_file(user_name, temp_file)
+            columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
 
-        feat_transforms = use_operation()
-        print(feat_transforms)
-        # print([f.transformers[0][1][0] if type(f).__name__=='ColumnTransformer' else f.__name__ for f in feat_transforms['Operation']])
-        # feat_transforms['Operations']=[f.transformers[0][1][0].steps[0][0] if type(f).__name__=='ColumnTransformer' else f.__name__ type(list(f.values())[0]).__name__ if type(f).__name__=='defaultdict' else f.__name__ for f in feat_transforms['Operation']]
-        operations = []
-        # if type(feat_transforms)!='NoneType':
-        for f in feat_transforms['Operation']:
-            if type(f).__name__ == 'ColumnTransformer':
-                try:
-                    operations.append(f.transformers[0][1][0].steps[0][0])
-                except:
-                    operations.append(type(f.transformers[0][1][0]).__name__)
-            elif type(f).__name__ == 'defaultdict':
-                operations.append(type(list(f.values())[0]).__name__)
-            else:
-                operations.append(f.__name__)
-        feat_transforms['Operations'] = operations
-        print(feat_transforms.loc[:, ['Operations', 'Column']])
-        feat_transforms = [{'field': f, 'title': d} for f, d in
-                           zip(feat_transforms['Operations'], feat_transforms['Column'])]
-        print(feat_transforms)
+            feat_transforms = use_operation(user_name)
+            print(feat_transforms)
+            # print([f.transformers[0][1][0] if type(f).__name__=='ColumnTransformer' else f.__name__ for f in feat_transforms['Operation']])
+            # feat_transforms['Operations']=[f.transformers[0][1][0].steps[0][0] if type(f).__name__=='ColumnTransformer' else f.__name__ type(list(f.values())[0]).__name__ if type(f).__name__=='defaultdict' else f.__name__ for f in feat_transforms['Operation']]
+            operations = []
+            # if type(feat_transforms)!='NoneType':
+            for f in feat_transforms['Operation']:
+                if type(f).__name__ == 'ColumnTransformer':
+                    try:
+                        operations.append(f.transformers[0][1][0].steps[0][0])
+                    except:
+                        operations.append(type(f.transformers[0][1][0]).__name__)
+                elif type(f).__name__ == 'defaultdict':
+                    operations.append(type(list(f.values())[0]).__name__)
+                else:
+                    operations.append(f.__name__)
+            feat_transforms['Operations'] = operations
+            print(feat_transforms.loc[:, ['Operations', 'Column']])
+            feat_transforms = [{'field': f, 'title': d} for f, d in
+                            zip(feat_transforms['Operations'], feat_transforms['Column'])]
+            print(feat_transforms)
 
-        transform_data = {
-            # 'feat_transforms':feat_transforms.loc[:,['Operations','Column']].to_html(index=False, index_names=False),
-            'columns': columns,
-            'feat_transforms': feat_transforms
-            # 'transform_data':transform.head(20).to_html(index=False, index_names=False)
-        }
+            transform_data = {
+                # 'feat_transforms':feat_transforms.loc[:,['Operations','Column']].to_html(index=False, index_names=False),
+                'columns': columns,
+                'feat_transforms': feat_transforms
+                # 'transform_data':transform.head(20).to_html(index=False, index_names=False)
+            }
 
-        return render(request, "transform.html", transform_data)
+            return render(request, "transform.html", transform_data)
 
-    if 'submit_steps' in request.POST and request.method == "POST":
-        temp_file = current_file(user_name)
-        # transform=pd.read_csv(temp_file)
-        transform = get_current_file(user_name, temp_file)
-        
+        if 'submit_steps' in operation_chosen:
+            temp_file = current_file(user_name)
+            # transform=pd.read_csv(temp_file)
+            transform = get_current_file(user_name, temp_file)
+            
 
-        operations = use_operation()
-        print(operations)
-        temp_operations = retrieve_temp_operation(user_name).reset_index(drop=True)
-        column_list =temp_operations['Column'].tolist()
-        feats = list(set(reduce(lambda x,y: x+y, column_list)))
-        
-        temporary_data=transform.loc[:,feats]
-        temporary(user_name, temporary_data)
-        
-        #store_operation(temp_operations['Operation'][0],temp_operations['Column'][0])
-        operations = pd.concat([operations, temp_operations], ignore_index=True)
-        print('Concatenated: ')
-        print(operations)
-        store_all_operation(temp_file, operations)
-        transform = apply_operations(transform, temp_operations)
-        columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
-        update_train_file(user_name, temp_file, transform)
-        # transform.to_csv(temp_file, index=False)
-        transform_data = {
-            'columns': columns,
-            'transform_data': transform.head(20).to_html(index=False, index_names=False)
-        }
+            operations = use_operation(user_name)
+            print(operations)
+            temp_operations = retrieve_temp_operation(user_name).reset_index(drop=True)
+            column_list =temp_operations['Column'].tolist()
+            feats = list(set(reduce(lambda x,y: x+y, column_list)))
+            
+            temporary_data=transform.loc[:,feats]
+            temporary(user_name, temporary_data)
+            
+            #store_operation(temp_operations['Operation'][0],temp_operations['Column'][0])
+            operations = pd.concat([operations, temp_operations], ignore_index=True)
+            print('Concatenated: ')
+            print(operations)
+            store_all_operation(temp_file, operations)
+            transform = apply_operations(transform, temp_operations)
+            columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
+            update_train_file(user_name, temp_file, transform)
+            # transform.to_csv(temp_file, index=False)
+            transform_data = {
+                'columns': columns,
+                'transform_data': transform.head(20).to_html(index=False, index_names=False)
+            }
 
-        return render(request, "transform.html", transform_data)
-    if 'remove_steps' in request.POST and request.method == "POST":
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        # columns=[{'field':f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        print('Chosen Option: ', request.POST.getlist('trans'))
-        index = request.POST.getlist('trans')
-        index = [int(i) for i in index]
-        print('Chosen Option: ', index)
-        feat_engine = use_operation(user_name)
+            return render(request, "transform.html", transform_data)
+        if 'remove_steps' in operation_chosen:
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            # columns=[{'field':f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            print('Chosen Option: ', request.POST.getlist('trans'))
+            index = request.POST.getlist('trans')
+            index = [int(i) for i in index]
+            print('Chosen Option: ', index)
+            feat_engine = use_operation(user_name)
 
-        print('Chosen: ', feat_engine.loc[index, :])
-        remove_steps = feat_engine.loc[index, :]
-        feat_engine = feat_engine.drop(feat_engine.loc[index, :].index)
-        store_all_operation(user_name, temp_file, feat_engine.reset_index(drop=True))
-        #feat_engine.to_pickle(os.path.join(temp_dir, 'operations.pkl'))
-        # apply_operations(test_data)
-        data_in = apply_reverse_operations(data_in, remove_steps)
+            print('Chosen: ', feat_engine.loc[index, :])
+            remove_steps = feat_engine.loc[index, :]
+            feat_engine = feat_engine.drop(feat_engine.loc[index, :].index)
+            store_all_operation(user_name, temp_file, feat_engine.reset_index(drop=True))
+            #feat_engine.to_pickle(os.path.join(temp_dir, 'operations.pkl'))
+            # apply_operations(test_data)
+            data_in = apply_reverse_operations(data_in, remove_steps)
 
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        update_train_file(user_name, temp_file, data_in)
-        temp_data_remove(remove_steps['Column'].reset_index(drop=True)[0])
-        
-        
-        transform_data = {
-            'columns': columns,
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-        }
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            update_train_file(user_name, temp_file, data_in)
+            temp_data_remove(remove_steps['Column'].reset_index(drop=True)[0])
+            
+            
+            transform_data = {
+                'columns': columns,
+                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
+            }
 
-        return render(request, "transform.html", transform_data)
+            return render(request, "transform.html", transform_data)
 
-    if 'view_transform_data' in request.POST and request.method == "POST":
-        print('Transform Data')
-        feat_engine = use_operation()
-        some_list =feat_engine['Column'].tolist()
-        single_list = list(set(reduce(lambda x,y: x+y, some_list)))
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        data_final=data_in[single_list]
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        print(data_final)
-        transform_data = {
-            'columns': columns,
-            'transform_data': data_final.head(20).to_html(index=False, index_names=False)
-        }
-        return render(request, "transform.html", transform_data)
+        if 'view_transform_data' in operation_chosen:
+            print('Transform Data')
+            feat_engine = use_operation(user_name)
+            some_list =feat_engine['Column'].tolist()
+            single_list = list(set(reduce(lambda x,y: x+y, some_list)))
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            data_final=data_in[single_list]
+            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            print(data_final)
+            transform_data = {
+                'columns': columns,
+                'transform_data': data_final.head(20).to_html(index=False, index_names=False)
+            }
+            return render(request, "transform.html", transform_data)
 
     else:
         temp_file = current_file(user_name)

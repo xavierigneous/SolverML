@@ -148,6 +148,7 @@ h6:first-line{
     <th>{{ col.field |safe}}</td><p>({{ col.title | safe }})</p>
         <input type="checkbox" class="cols" name="cols" value="{{ col.field }}"></input>  
   {% endfor %}
+    </form>
   </table>
     {% csrf_token %}
     <style type="text/css">
@@ -160,28 +161,87 @@ h6:first-line{
         cursor: pointer;
       }
     </style>
-    <button type="submit" name="labelencode" class = "btn">Label Encoding</button>
-    <button type="submit" name="ohencoder" class = "waves-effect waves-light btn">One Hot Encoding</button>
-    <button type="submit" name="symbol_removal" class = 'btn' >Symbol Removal</button>
-    <button type="submit" name="remove_outliers" class = 'btn' >Remove Outlier</button>
-    <button type="submit" name="mean_outliers" class = 'btn' >Mean Impute Outliers</button>
-    <button type="submit" name="median_outliers" class = 'btn' >Median Impute Outliers</button>
-    <button type="submit" name="logtransform" class = 'btn' >Log Transform</button>
-    <button type="submit" name="median_impute" class = 'btn' >Median Impute</button>
-    <button type="submit" name="mean_impute" class = 'btn' >Mean Impute</button>
-    </div>
-    <button type="submit" name="mode_impute" class = 'btn' >Mode Impute</button>
-    </div>
-    <button type="submit" name="zero_impute" class = 'btn' >Zero Impute</button>
-    <button type="submit" name="convert_to_int" class = 'btn' >To Integer</button>
-    <button type="submit" name="convert_to_float" class = 'btn' >To Float</button>
-    <button type="submit" name="feat_importance" class = 'btn' >Feature Importance</button>
-    <button type="submit" name="multicoll" class = 'btn' >MultiCollinearity</button>
-    </div>
-    <button type="submit" name="drop_column" class = 'btn' >Drop Column</button>
-    
-    </div>
-    <div>
+
+<script>
+  function transform_w3_open() {
+    // document.getElementById("new_project").style.marginLeft = "none";
+document.getElementById("transform_options").style.width = "10%";
+document.getElementById("transform_options").style.display = "block";
+// document.getElementById("outlier_treatment").style.display = 'none';
+// document.getElementsByName("homepage").textContent =
+}
+function transform_w3_close() {
+document.getElementById("transform_options").style.marginRight = "0%";
+// document.getElementById("outlier_treatment").style.display = "none";
+document.getElementById("transform_options").style.display = 'none';
+}
+</script>
+<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+
+<script>
+  function changeContent(buttonm) {
+			var dropdown = document.getElementById("select_transformation");
+      dropdown.innerHTML = "";
+
+			var list1 = ["Remove Outlier", "Mean Impute Outliers", "Median Impute Outliers"];
+			var list2 = ["Median Impute","Mean Impute","Mode Impute","Zero Impute"];
+			var list3 = ["Label Encoding","One Hot Encoding"];
+      var list4 = ["Log Transform"];
+      switch(buttonm) {
+        case "outlier_treatment":
+					// Set the options for button 1
+					var options = list1;
+					break;
+				case "impute_nulls":
+					// Set the options for button 3
+					var options = list2;
+					break;
+        case "category_col":
+					// Set the options for button 3
+					var options = list3;
+					break;
+        case "transformation":
+					// Set the options for button 3
+					var options = list4;
+					break;
+				default:
+					// If an invalid button id was provided, do nothing
+					return;
+      }
+    // Add the options to the dropdown
+			for (var i = 0; i < options.length; i++) {
+				var option = document.createElement("option");
+				option.value = options[i];
+        option.id = options[i];
+				option.innerHTML = options[i];
+				dropdown.appendChild(option);
+			}
+		}
+</script>
+
+ <link rel="icon" href="static/projectname/favicon.ico">
+ <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <div class="w3">
+  <button id="outlier_treatment" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Outliers</button>
+  <button id="transformation" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Transform</button>
+  <button id="impute_nulls" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Impute Nulls</button>
+  <button id="category_col" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Category Column</button>
+</div>
+
+<div class="w3-sidebar w3-bar-block w3-deep-purple w3-animate-right" id="transform_options" style="display:none;width:25%;right:0">
+  <button class="w3-bar-item w3-button w3-large w3-animate-right w3-border-bottom  w3-hover-red"onclick="transform_w3_close()">Close &times;</button>
+    <form method="POST">
+      {% csrf_token %}
+      <div name="transformation_field">
+        <select id="select_transformation" name="select_transformation"></select>
+      </div>
+      <p>
+      <button type="submit" name="submit_transformation" class = 'btn' >Submit</button>
+    </form>
+</div>
+
+  <div>
     <button type="submit" name="view_steps" class = 'btn' >View Steps</button>
     <button type="submit" name="submit_steps" class = 'btn' >Submit</button>
     &nbsp &nbsp &nbsp
