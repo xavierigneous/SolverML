@@ -126,6 +126,7 @@ h6:first-line{
 <h6 >Project Name:    {{project_name}}</h6>
 <tbody>
 <form method="POST"> {% csrf_token %}
+  <div class="container">
 <button type="submit" name="view" class = "waves-effect waves-light btn" style = "background-color: #85C1E9" >View Data</button>
 
       <button type="submit" name="describe" class = "waves-effect waves-light btn" style = "background-color: #82E0AA">Describe Data</button>
@@ -141,13 +142,13 @@ h6:first-line{
       {% endfor %}
   </select>
   <button type="submit" name="target" class = "waves-effect waves-light btn" style = "background-color: #82E0AA">Select Target</button>
+</div>
 </tbody>
-
 
 <p>
 
 <head>
-  <title>TableView</title>
+  <!-- <title>TableView</title> -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">

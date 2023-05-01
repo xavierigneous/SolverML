@@ -142,9 +142,9 @@ h6:first-line{
   <img src="https://www.kindpng.com/picc/m/20-204238_internet-icon-internet-access-web-browser-icono-de.png" style="width:100px;height:100px;">
   <form method="POST" enctype='multipart/form-data'  id='url_file_upload'>
     {% csrf_token %}
-       Enter URL of data 
+       <label style ="color: #00FF00">URL of data</label>
       <input type="text" name="url" multiple> <!-- Getting the file here -->
-      Enter filename
+      <label style ="color: #00FF00">Enter filename</label>
       <input type="text" name="url_file_name" multiple> <!-- Getting the file here -->
       
       <button type="submit" name="url_upload"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Upload</button>
@@ -224,7 +224,7 @@ h6:first-line{
 <p>
 
   {% csrf_token %}
-<label >Enter filename for Merged File: </label>
+<label style="color: #00FF00;">Enter filename for Merged File: </label>
 <input id="merge_name" type="text" name="merge_name">
 <br><br>
 <select name="columns1" id="columns1">

@@ -177,9 +177,9 @@ function w3_close() {
 </style>
 
 <form method="POST" enctype='multipart/form-data'  id='new_project'>
-  
+  {% csrf_token %}
   <button type="submit" class ="logout_icon" name="logout" title="Logout" style = "background-color: #F9FCF9" ></button>
-    {% csrf_token %}
+    
   <div class="centered">
   <div class="div-left">
     <div>
