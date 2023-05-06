@@ -140,17 +140,16 @@ h6:first-line{
     justify-content: center;
     border:1px solid black;}
   </style>
-
-  <form class="sidenav" action="" method="POST" id='colsel' name='colsel' class="waves-effect waves-light btn">
+  <!-- <script var form_token = {% csrf_token %} ></script> -->
+  <form method="POST">    
     {% csrf_token %}
   
   {% for col in columns %}
     <th>{{ col.field |safe}}</td><p>({{ col.title | safe }})</p>
         <input type="checkbox" class="cols" name="cols" value="{{ col.field }}"></input>  
   {% endfor %}
-    </form>
+    <!-- </form> -->
   </table>
-    {% csrf_token %}
     <style type="text/css">
       .btn {
         border: 2px solid black;
@@ -223,37 +222,45 @@ document.getElementById("transform_options").style.display = 'none';
  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <div class="w3">
-  <button id="outlier_treatment" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Outliers</button>
-  <button id="transformation" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Transform</button>
-  <button id="impute_nulls" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Impute Nulls</button>
-  <button id="category_col" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Category Column</button>
+  <a id="outlier_treatment" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Outliers</a>
+  <a id="transformation" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Transform</a>
+  <a id="impute_nulls" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Impute Nulls</a>
+  <a id="category_col" class="w3-button w3-indigo w3-xlarge w3-hover-green" onclick="transform_w3_open();changeContent(this.id)">Category Column</a>
+  <!-- <form method="POST">    
+    {% csrf_token %} -->
+    <button type="submit" name="symbol_removal" class="w3-button w3-indigo w3-xlarge w3-hover-green">Remove Symbol</button>
+    <button type="submit" name="drop_column" class="w3-button w3-indigo w3-xlarge w3-hover-green">Drop Columns</button>
+    <button type="submit" name="multicoll" class="w3-button w3-indigo w3-xlarge w3-hover-green">MultiCollinearity</button>
+  <!-- </form> -->
 </div>
 
 <div class="w3-sidebar w3-bar-block w3-deep-purple w3-animate-right" id="transform_options" style="display:none;width:25%;right:0">
-  <button class="w3-bar-item w3-button w3-large w3-animate-right w3-border-bottom  w3-hover-red"onclick="transform_w3_close()">Close &times;</button>
-    <form method="POST">
-      {% csrf_token %}
+  <a class="w3-bar-item w3-button w3-large w3-animate-right w3-border-bottom  w3-hover-red"onclick="transform_w3_close()">Close &times;</a>
+    <!-- <form method="POST"> {% csrf_token %} -->
       <div name="transformation_field">
         <select id="select_transformation" name="select_transformation"></select>
       </div>
       <p>
       <button type="submit" name="submit_transformation" class = 'btn' >Submit</button>
-    </form>
+    <!-- </form> -->
 </div>
 
   <div>
-    <button type="submit" name="view_steps" class = 'btn' >View Steps</button>
-    <button type="submit" name="submit_steps" class = 'btn' >Submit</button>
-    &nbsp &nbsp &nbsp
-    <button type="submit" name="remove_steps" class = 'btn' >Remove Steps</button>
-    &nbsp &nbsp &nbsp
-    <button type="submit" name="view_transform_data" class = 'btn' >Transformed data</button>
-    </div>
+    
+      {% csrf_token %}
+      <button type="submit" name="view_steps" class = 'btn' >View Steps</button>
+      <button type="submit" name="submit_steps" class = 'btn' >Submit</button>
+      &nbsp &nbsp &nbsp
+      <button type="submit" name="remove_steps" class = 'btn' >Remove Steps</button>
+      &nbsp &nbsp &nbsp
+      <button type="submit" name="view_transform_data" class = 'btn' >Transformed data</button>
+    
+  </div>
 
   {% if feat_transforms %}
   {% for trans in feat_transforms %}
     <!--<th>{{ col.field |safe}}</td><p>({{ col.title | safe }})</p>-->
-      <p>
+      <p style ="color: #00FF00">
         <input type="checkbox" name="trans" value="{{ forloop.counter0 }}"></input>
         {{ forloop.counter }}.  {{ trans.field |safe}}    ON    {{ trans.title | safe }}
         
@@ -303,8 +310,8 @@ document.getElementById("transform_options").style.display = 'none';
 }
 
 .container {
-  width: max-content;
-  overflow: auto;
+  width: 5000px;
+  /* overflow: auto; */
 }
 </style>
 

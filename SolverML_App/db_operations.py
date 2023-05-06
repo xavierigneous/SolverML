@@ -5,7 +5,7 @@ import sqlalchemy
 import os, pickle, compress_pickle, sys
 import time
 
-temp_dir = os.path.join(os.getcwd(), 'SolverML_App/temp_data')
+temp_dir = os.path.join(os.getcwd(), 'temp_data')
 
 def sql_engine():
     sql_engine = sqlalchemy.create_engine('postgresql://postgres:vish2303@localhost:5432/analytics1')
@@ -68,7 +68,7 @@ def delete_projects(project_id, user_name):
     # sql_engine()().execute(query)
     sql_engine().execute(query)
 
-def retrieve_temp_operation():
+def retrieve_temp_operation(user_name):
     feat_engine = pd.read_pickle(os.path.join(temp_dir, 'temp_operations.pkl'))
     return feat_engine.loc[:, ['Operation', 'Column','Key']]
 
