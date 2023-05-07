@@ -266,7 +266,7 @@ def test_file_upload(user_name, file_in_use, df):
     project_id=get_current_project(user_name)
     df=compress_df(df)
     print(df.info(verbose=False))
-    file_name=current_file()
+    file_name=current_file(user_name)
     query = f"select file_name from public.test_data where user_name='{user_name}' AND project_id='{project_id}'".format(
         user_name, project_id)
     base = psql.read_sql_query(query, sql_engine())

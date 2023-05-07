@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<link rel="icon" href="static/projectname/favicon.ico">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <html>
   <body style="background-color:rgb(49, 8, 83);"></body>
   <head>
@@ -127,12 +130,12 @@ h6:first-line{
 <tbody>
 <form method="POST"> {% csrf_token %}
   <div class="container">
-<button type="submit" name="view" class = "waves-effect waves-light btn" style = "background-color: #85C1E9" >View Data</button>
+<button type="submit" name="view" class="w3-bar-item w3-button w3-border-bottom w3-hover-pink" style = "background-color: #85C1E9" >View Data</button>
 
-      <button type="submit" name="describe" class = "waves-effect waves-light btn" style = "background-color: #82E0AA">Describe Data</button>
+<button type="submit" name="describe" class="w3-bar-item w3-button w3-border-bottom w3-hover-blue" style = "background-color: #82E0AA">Describe Data</button>
 
-      <button type="submit" name="columnlist" class = "waves-effect waves-light btn" style = "background-color: #82E0AA">Column List</button>
-      <button type="submit" name="graph_view" class = "waves-effect waves-light btn" style = "background-color: #82E0AA">Graph View</button>
+<button type="submit" name="columnlist" class="w3-bar-item w3-button w3-border-bottom w3-hover-blue" style = "background-color: #82E0AA">Column List</button>
+<button type="submit" name="graph_view" class="w3-bar-item w3-button w3-border-bottom w3-hover-blue" style = "background-color: #82E0AA">Graph View</button>
 </tbody>
 {% csrf_token %}
 <select name="columns" id="columns">

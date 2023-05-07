@@ -223,7 +223,7 @@ def datainput(request):
             print('Project Id: ',project_id)
             df = pd.read_csv(x, na_values=' ')
             print(df)
-            file_upload(df,project_id,file_name)
+            file_upload(user_name, df,project_id,file_name)
 
         project_id = get_current_project(user_name)
         query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
@@ -538,12 +538,18 @@ class type_change:
         x = x.astype(str)
         return x
 
-class log:
+class transformations:
     def log_transform(x):
         return np.log1p(x)
 
     def log_inverse_transform(x):
         return np.exp(x) - 1
+    
+    def square_transform(x):
+        return np.log1p(x)
+    
+    def box_cox_transform(x):
+        return stats.boxcox(x)
 
 
 def datetimeformat(feats):
@@ -632,7 +638,8 @@ def apply_reverse_operations(user_name, test_data, feat_engine):
         print(type(operation).__name__)
         if type(operation).__name__ == 'ColumnTransformer':
             print('Operation: ', operation.transformers[0][1][0])
-            if operation.transformers[0][0] in ['_int','_float','_string','remove_outliers','median_impute_outliers','mean_impute_outliers', '_log']:
+            if operation.transformers[0][0] in ['_int','_float','_string','remove_outliers','median_impute_outliers','mean_impute_outliers', '_log', '_sqrt',\
+                                                '_boxcox']:
                 print('Applying data reversal: ',operation.transformers[0][0])
                 project_id=get_current_project(user_name)
                 query=f"select temp from public.train_data where user_name='{user_name}' AND project_id='{project_id}' AND use_file='Yes'".format(user_name, project_id)
@@ -785,13 +792,113 @@ def transform(request):
             #                         FunctionTransformer(log.log_transform, inverse_func=log.log_inverse_transform,
             #                                             check_inverse=True))])
             log_transform = Pipeline([('logtransform',
-                                    FunctionTransformer(log.log_transform))])
+                                    FunctionTransformer(transformations.log_transform))])
             log_transform_pipeline = ColumnTransformer([
                 ('_log', Pipeline([('log_transform', log_transform)]), feats)])
             
             temp = pd.DataFrame(data_in.loc[:, feats])
             if not temp.isna().any().any():
                 print('Log Transform in Progress')
+                op = log_transform_pipeline.transformers[0][0]
+                key = [[op + '_' + x for x in feats if not str(x) == "nan"]]
+                print(key)
+                df=use_operation(user_name)
+                if not key in df['Key'].to_list():
+                    print('New Operation')
+                    temp.loc[:, :] = log_transform_pipeline.fit_transform(temp)
+                    temp = temp.loc[:, :].add_suffix(op)
+                    print(temp)
+                    #print(pd.concat([data_in, temp], axis=1))
+                    store_temp_operation(log_transform_pipeline, feats)
+                    temp = pd.concat([data_in, temp], axis=1)
+                else:
+                    messages.error(request, 'Operation Already Performed')
+                    print('Operation already performed')
+                    temp = data_in.copy()
+            else:
+                print('Not happening')
+                messages.error(request, 'Null Values Found in ',feats)
+                messages.error(request, feats)
+                temp = data_in.copy()
+            print(temp)
+            # update_train_file(temp_file, data_in)
+            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False),
+                'columns': columns,
+            }
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+
+        if 'Square Root Transform' in operation_chosen:
+            # print('Requests: ',request.POST)
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            
+            feats = request.POST.getlist('cols')
+            print('Square Root Transform on ',feats)
+            # log_transform = Pipeline([('logtransform',
+            #                         FunctionTransformer(log.log_transform, inverse_func=log.log_inverse_transform,
+            #                                             check_inverse=True))])
+            log_transform = Pipeline([('sqrttransform',
+                                    FunctionTransformer(transformations.square_transform))])
+            log_transform_pipeline = ColumnTransformer([
+                ('_sqrt', Pipeline([('sqrt_transform', log_transform)]), feats)])
+            
+            temp = pd.DataFrame(data_in.loc[:, feats])
+            if not temp.isna().any().any():
+                print('Square Root Transform in Progress')
+                op = log_transform_pipeline.transformers[0][0]
+                key = [[op + '_' + x for x in feats if not str(x) == "nan"]]
+                print(key)
+                df=use_operation(user_name)
+                if not key in df['Key'].to_list():
+                    print('New Operation')
+                    temp.loc[:, :] = log_transform_pipeline.fit_transform(temp)
+                    temp = temp.loc[:, :].add_suffix(op)
+                    print(temp)
+                    #print(pd.concat([data_in, temp], axis=1))
+                    store_temp_operation(log_transform_pipeline, feats)
+                    temp = pd.concat([data_in, temp], axis=1)
+                else:
+                    messages.error(request, 'Operation Already Performed')
+                    print('Operation already performed')
+                    temp = data_in.copy()
+            else:
+                print('Not happening')
+                messages.error(request, 'Null Values Found in ',feats)
+                messages.error(request, feats)
+                temp = data_in.copy()
+            print(temp)
+            # update_train_file(temp_file, data_in)
+            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            transform_data = {
+                'transform_data': temp.head(20).to_html(index=False, index_names=False),
+                'columns': columns,
+            }
+            # data_in.to_csv(temp_file, index=False)
+            return render(request, 'transform.html', transform_data)
+        
+        if 'Box Cox Transform' in operation_chosen:
+            # print('Requests: ',request.POST)
+            temp_file = current_file(user_name)
+            # data_in=pd.read_csv(temp_file)
+            data_in = get_current_file(user_name, temp_file)
+            
+            feats = request.POST.getlist('cols')
+            print('Box Cox Transform on ',feats)
+            # log_transform = Pipeline([('logtransform',
+            #                         FunctionTransformer(log.log_transform, inverse_func=log.log_inverse_transform,
+            #                                             check_inverse=True))])
+            log_transform = Pipeline([('boxcoxtransform',
+                                    FunctionTransformer(transformations.box_cox_transform))])
+            log_transform_pipeline = ColumnTransformer([
+                ('_boxcox', Pipeline([('boxcox_transform', log_transform)]), feats)])
+            
+            temp = pd.DataFrame(data_in.loc[:, feats])
+            if not temp.isna().any().any():
+                print('Box Cox Transform in Progress')
                 op = log_transform_pipeline.transformers[0][0]
                 key = [[op + '_' + x for x in feats if not str(x) == "nan"]]
                 print(key)
@@ -1686,17 +1793,14 @@ def modelling(request):
         target = get_target(user_name, temp_file,project_id)
         X_train = data_in.drop(target, axis=1)
         y_train = data_in[target]
-        with open('problem_type.obj', 'rb') as fp:
-            problem_type = pickle.load(fp)
-        print('Problem Type: ', list(problem_type.values())[0])
-        problem_type = list(problem_type.values())[0]
+        
         problem_type = get_problem_type(user_name, temp_file)
         print('Problem Type: ', problem_type)
         fsel = autofeat.FeatureSelector(problem_type=problem_type)
         print('Starting Auto Feature Selector')
         new_X = fsel.fit_transform(X_train, y_train)
         selected_columns = pd.DataFrame({'Selected by Auto Feature Selector': new_X.columns.to_list()})
-        save_columns_selected(temp_file, selected_columns.to_json())
+        save_columns_selected(user_name, temp_file, selected_columns.to_json())
         # feats=request.POST.getlist('cols')
         # print(data_in.loc[:,feats].head())
         columns = [{'field': f, 'title': X_train[f].dtypes} for f in X_train.columns.to_list()]
@@ -1875,7 +1979,7 @@ def ml_model(request):
         models, accuracy, precision, recall, f1, roc_auc = [], [], [], [], [], []
         #save_models, params = [], []
         model_files, time_fit=[],[]
-        neg_mean_absolute_error, neg_mean_squared_error, neg_root_mean_squared_error, neg_mean_squared_log_error, r2 = [], [], [], [], []
+        neg_mean_absolute_error, neg_mean_squared_error, neg_root_mean_squared_error, neg_mean_squared_log_error, r2, explained_variance = [], [], [], [], [], []
         ml_dict = reg_dict if problem_type == 'regression' else class_dict
         for i in algos:
             print(i)
@@ -1916,11 +2020,13 @@ def ml_model(request):
                     neg_mean_squared_error.append(round(summary_score['neg_mean_squared_error'].mean(), 4))
                     neg_root_mean_squared_error.append(round(summary_score['neg_root_mean_squared_error'].mean(), 4))
                     r2.append(round(summary_score['r2'].mean(), 4))
+                    explained_variance.append(round(summary_score['explained_variance'].mean(), 4))
                     time_fit.append(str(datetime.datetime.now().strftime('%d/%m/%Y %H-%M-%S %p')))
                     result = pd.DataFrame({'Model': models, 'mean_absolute_error': neg_mean_absolute_error,
                                            'mean_squared_error ': neg_mean_squared_error,
                                            'root_mean_squared_error ': neg_root_mean_squared_error,
                                            'R2 Score ': r2,
+                                           'Explained Variance ': explained_variance,
                                            'Fitted Time':time_fit})
             if request.POST['cross_validation'] not in ['train_test']:
                 if not i.startswith('Tuned'):
@@ -1954,16 +2060,18 @@ def ml_model(request):
                                            'ROC Score ': roc_auc,
                                            'Fitted Time':time_fit})
                 if problem_type == 'regression':
-                    neg_mean_absolute_error.append(round(summary_score['test_neg_mean_absolute_error'].mean(), 4))
-                    neg_mean_squared_error.append(round(summary_score['test_neg_mean_squared_error'].mean(), 4))
+                    neg_mean_absolute_error.append(np.abs(round(summary_score['test_neg_mean_absolute_error'].mean(), 4)))
+                    neg_mean_squared_error.append(np.abs(round(summary_score['test_neg_mean_squared_error'].mean(), 4)))
                     neg_root_mean_squared_error.append(
-                        round(summary_score['test_neg_root_mean_squared_error'].mean(), 4))
+                        np.abs(round(summary_score['test_neg_root_mean_squared_error'].mean(), 4)))
                     r2.append(round(summary_score['test_r2'].mean(), 4))
+                    explained_variance.append(np.abs(round(summary_score['test_explained_variance'].mean(), 4)))
                     time_fit.append(str(datetime.datetime.now().strftime('%d/%m/%Y %H-%M-%S %p')))
                     result = pd.DataFrame({'Model': models, 'mean_absolute_error': neg_mean_absolute_error,
                                            'mean_squared_error ': neg_mean_squared_error,
                                            'root_mean_squared_error ': neg_root_mean_squared_error,
                                            'R2 Score ': r2,
+                                           'Explained Variance ': explained_variance,
                                            'Fitted Time':time_fit})
 
             #filename = os.path.join(temp_dir, i + '.sav')
@@ -2875,6 +2983,7 @@ def prediction(request):
 
         # result = pd.read_pickle(os.path.join(temp_dir, 'Leaderboard.pkl'))
         result = get_leaderboard(user_name, temp_file, problem_type)
+        best_models=result['Model'][0]
         model_list = {
             'best_models':best_models,
             'model_list': model_list,

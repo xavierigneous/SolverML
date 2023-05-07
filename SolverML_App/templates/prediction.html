@@ -165,6 +165,7 @@ function w3_close() {
 -->
 <form method="POST">
   {% csrf_token %}
+  <div class="container">
   <tr>
       {% for col in columns %}
       <th>{{col}}</th>
@@ -184,30 +185,11 @@ function w3_close() {
   {% endif %}
   </tr>
 {% endfor %}
+</div>
 
 
-</tbody>
 </table>
-<style >
-  p {
-  font-family: 'Segoe UI SemiBold';
-  font-size: 16px;
-  color: #535353;
-  text-align: left;
 
-</style>
-<!--
-{% for col in model_list %}
-      <p>
-        <label>
-        <input type="radio" class="premodel" name="premodel" value="{{ col.field }}" style = "font-size:8 " {% if col.title == best_models %} checked {% endif %};>{{ col.title |safe}}</input>
-        {% if col.title == best_models %}
-          <img src="https://cdn2.iconfinder.com/data/icons/modifiers-add-on-1-flat/48/Mod_Add-On_1-34-512.png" style="width:30px;height:30px;">
-        {% endif %}
-        </label>
-      </p>
-{% endfor %}
--->
   <button type='submit' class="predict" name="predict">Predict</button>
   <br><br>
 </form>
@@ -216,7 +198,7 @@ function w3_close() {
   <form method="POST" enctype='multipart/form-data'  id='csv_upload'>
     {% csrf_token %}
        
-      <input type="file" name="file" multiple>
+      <input style="color:white;" type="file" name="file" multiple>
       <button type="submit" name="test_file_upload"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Upload</button>
       {% for message in messages %}
           {% if 'success' == message.tags %}
@@ -226,27 +208,27 @@ function w3_close() {
       <br><br>
   
   <br>
-        <label >Hostname: </label>
+        <label style="color:white;">Hostname: </label>
         <input id="Hostname" type="text" name="Hostname">
         <br>
-        <label >Port: </label>
+        <label style="color:white;">Port: </label>
         <input id="port" type="text" name="port">
         <br>
-        <label >Username: </label>
+        <label style="color:white;">Username: </label>
         <input id="username" type="text" name="username">
         <br>
-        <label >Password: </label>
+        <label style="color:white;">Password: </label>
         <input id="password" type="text" name="password">
         <br>
-        <label >Database: </label>
+        <label style="color:white;">Database: </label>
         <input id="database" type="text" name="database">
         <br>
-        <label >Table_name: </label>
+        <label style="color:white;">Table_name: </label>
         <input id="table" type="text" name="table">
-        <label >Query: </label>
+        <label style="color:white;">Query: </label>
         <input id="query" type="text" name="query">
 
-        <button type="submit" name="test_sql_upload"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Up</button>
+        <button type="submit" name="test_sql_upload"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Upload</button>
     <br>
 
     <style type="text/css">
@@ -275,53 +257,57 @@ function w3_close() {
    </form>
   {% if distribution %}
 
-   <h2>Prediction Distribution</h2>
+   <h2 style="color:white;">Prediction Distribution</h2>
   <!--<img src="data:image/png;base64,{{distribution | safe}}">-->
   {{ distribution|safe }}
   {% endif %}
-<table class="table table-dark table-striped">
-  <style>.dataframe th{
-  background:#3f577c; 
-  font-family:sans-serif; 
-  color:white;
-  text-align: center;
-  justify-content: center;
-  border:1px solid black;
-}td {
-  text-align: center;
-  vertical-align: bottom;
-}
+  <table class="table table-dark table-striped">
+    <style>.dataframe th{
+    background: rgb(49, 8, 83); 
+    font-family:sans-serif; 
+    color:white;
+    text-align: center;
+    justify-content: center;
+    border:1px solid black;
+  }td {
+    text-align: center;
+    vertical-align: bottom;
+    color:white;
+  }
+    </style>
+    <style type="text/css">
+      .column {
+     float: left;
+     width: 100px;
+     padding: 0px;
+  }
+  
+  .row {
+     content: "";
+     display: table;
+     clear: both;
+  }
+  
+  .container {
+    width: 5000px;
+    /* overflow: auto; */
+  }
   </style>
-  <style type="text/css">
-    .column {
-   float: left;
-   width: 100px;
-   padding: 0px;
-}
-
-.row {
-   content: "";
-   display: table;
-   clear: both;
-}
-
-.container {
-  width: max-content;
-  overflow: auto;
-}
- </style>
  <br>
   {% if test_data %}
-  Test Data
+  <h2 style="color:white;">Test Data</h2>
   <!--<img src="data:image/png;base64,{{distribution | safe}}">-->
   <div class="container">
-  {{ test_data|safe }}
+    <td id="test_data"> {{ test_data | safe}} </td>
+  <!-- {{ test_data|safe }} -->
   </div>
   {% endif %}
   {% if tree_view %}
-  
-  <img src="data:image/png;base64,{{tree_view | safe}}">
+  <div class="container">
+    <img src="data:image/png;base64,{{tree_view | safe}}">
+  </div>
   <!--{{ tree_rules }}-->
   {% endif %}
 </body>
+</tbody>
 </html>

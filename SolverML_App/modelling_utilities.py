@@ -21,7 +21,7 @@ def fit_ml_algo(algo, x, y, fold, problem_type, fold_type):
     print(fold_type)
     split = {'kfold': KFold(n_splits=fold, shuffle=True),
              'stratifiedk_fold': StratifiedKFold(n_splits=fold, shuffle=True),
-             'shuffle_split': ShuffleSplit(n_splits=3)}
+             'shuffle_split': ShuffleSplit(n_splits=fold)}
     cv = split.get(fold_type)
     scoring = regression_scoring if problem_type == 'regression' else classification_scoring
     scores =   cross_val_predict(algo, x, y, cv=cv, scoring=scoring, return_train_score=False)
@@ -32,7 +32,7 @@ def fit_ml_algo_predict(algo, x, y, fold, problem_type, fold_type):
     print(fold_type)
     split = {'kfold': KFold(n_splits=fold, shuffle=True),
              'stratifiedk_fold': StratifiedKFold(n_splits=fold, shuffle=True),
-             'shuffle_split': ShuffleSplit(n_splits=3)}
+             'shuffle_split': ShuffleSplit(n_splits=fold)}
     cv = split.get(fold_type)
     print(cv)
     scoring = regression_scoring if problem_type == 'regression' else classification_scoring

@@ -162,27 +162,27 @@
   cursor: pointer;
 }
 </style>
-    <label for="cross_validation">Choose Validation:</label>
+    <label for="cross_validation" style="color: white;">Choose Validation:</label>
   <select name="cross_validation" id="cross_validation">
     {% for col in search_option %}
       <option class="cross_validation" name="cross_validation" value="{{ col.field | safe }}">{{ col.title | safe }}</option>
     {% endfor %}
   </select>
-<p>Choose Validation Size</p>
+<p style="color: white;">Choose Validation Size</p>
 <div class="slidecontainer">
   <input name="folds" id="folds" type="range" min="1" max="10" value="5" class="slider">
 </div>
 
 <br><br>
 {% csrf_token %}
-<label for="search_type">Choose Parameter Search Type:</label>
+<label for="search_type" style="color: white;">Choose Parameter Search Type:</label>
 <select name="search_type" id="search_type">
   <option value="GridSearchCV">GridSearchCV</option>
   <option value="RandomisedSearchCV">RandomisedSearchCV</option>
 </select>
 {% for col in model_list %}
       <p>
-        <label>
+        <label style ="color: #77da77">
         <input type="radio" class="premodel" name="premodel" value="{{ col.field }}" style = "font-size:8 ;"></input>
         <td>{{ col.title |safe}}</td> 
         {% endfor %}
@@ -203,6 +203,7 @@
 }td {
   text-align: center;
   vertical-align: bottom;
+  color: white;
 }
   </style>
   <style type="text/css">

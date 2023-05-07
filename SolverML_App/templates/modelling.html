@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<link rel="icon" href="static/projectname/favicon.ico">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <html>
   <body style="background-color:rgb(49, 8, 83);"></body>
 <head>
@@ -118,7 +121,7 @@ document.getElementById("openNav").style.display = "inline-block";
 <a href="{% url 'tuning' %}" name="tuning">Hyperparameter Tuning</a>
 </div>
 <form method="POST"> {% csrf_token %}
-<tbody>
+<tbody style="text-align: center;">
 {% csrf_token %}
 <h6 style="color:#ddd;">Column Selection</h6>
 <select name="columns" id="columns" multiple="multiple">
@@ -135,7 +138,7 @@ document.getElementById("openNav").style.display = "inline-block";
       {% endfor %}
   </select>
 
-  <button type="submit" name="save" class = "waves-effect waves-light btn" style = "background-color: #82E0AA">Save</button>
+  <button type="submit" name="save" class="w3-button w3-green w3-xlarge w3-hover-red" style = "background-color: #82E0AA">Save</button>
 </form>
 <form method="POST">
 {% csrf_token %}
@@ -144,9 +147,9 @@ document.getElementById("openNav").style.display = "inline-block";
   <input type="text" id="n_feats" name="n_feats" placeholder='Enter number'>
   Out of {{no_features}} columns</h6  >
 </p>
-  <button type="submit" name="selectkbest" class = "waves-effect waves-light btn" style = "background-color: #82E0AA">SelectKBest</button>
-  <button type="submit" name="autofeatselect" class = "waves-effect waves-light btn" style = "background-color: #82E0AA">Auto Feature Selector</button>
-  <button type="submit" name="rfecv" class = "waves-effect waves-light btn" style = "background-color: #82E0AA">Recursive Feature Elimination</button>
+  <button type="submit" name="selectkbest" class="w3-button w3-indigo w3-xlarge w3-hover-green" style = "background-color: #82E0AA">SelectKBest</button>
+  <button type="submit" name="autofeatselect" class="w3-button w3-indigo w3-xlarge w3-hover-green" style = "background-color: #82E0AA">Auto Feature Selector</button>
+  <button type="submit" name="rfecv" class="w3-button w3-indigo w3-xlarge w3-hover-green" style = "background-color: #82E0AA">Recursive Feature Elimination</button>
 </form>
 </tbody>
 

@@ -136,8 +136,8 @@ document.getElementById("openNav").style.display = "inline-block";
 
  <td id="transform_data"> {{ transform_data | safe}} </td>
    {% if distribution %}
-   <h2>Results</h2>
-   <h3>Model: {{model_chosen}}</h3>
+   <h2 style="color: white;">Results</h2>
+   <h3 style="color: white;">Model: {{model_chosen}}</h3>
   <img src="data:image/png;base64,{{distribution | safe}}">
   {% endif %}
 </tbody>
