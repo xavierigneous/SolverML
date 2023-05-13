@@ -1491,7 +1491,9 @@ def transform(request):
         columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
         transform_data = {
             'columns': columns,
-            'transform_data': transform.head(20).to_html(index=False, index_names=False),
+            # 'transform_data': transform.head(20).to_html(index=False, index_names=False),
+            'transform_data': transform.head(20).to_dict(orient='records'),
+            'columns':transform.columns.values,
             'project_name':project_name
         }
 
