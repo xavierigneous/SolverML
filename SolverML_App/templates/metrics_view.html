@@ -107,7 +107,16 @@ document.getElementById("openNav").style.display = "inline-block";
 <!-- <a href="{% url 'datainput' %}" name='datainput' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data</a> -->
 <a href="{% url 'transform' %}"name="transform" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Transform</a>
 <a href="{% url 'visual' %}" name="visual" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">EDA</a>
-<a href="{% url 'modelling' %}" name="visual" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Modelling</a>
+<div class="w3-dropdown-hover">
+  <a class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Model</a>
+  <div class="w3-dropdown-content w3-green w3-bar-block">
+    <a href="{% url 'modelling' %}" name='modelling' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Modelling</a>
+    <a href="{% url 'model_fit' %}" name='model_fit' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Model Fit</a>
+    <a href="{% url 'metrics_view' %}" name='metrics_view' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Metrics View</a>
+    <a href="{% url 'tuning' %}" name='tuning' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Hyperparameter Tuning</a>
+  </div>
+</div>
+<!-- <a href="{% url 'modelling' %}" name="visual" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Modelling</a> -->
 <a href="{% url 'interpret' %}" name="interpret" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Interpret</a>
 <a href="{% url 'prediction' %}" name="prediction" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Prediction</a>
 </div>
