@@ -127,9 +127,20 @@ def login_page(request):
 
 def id_generator(lst):
     return sorted(set(range(1, lst[-1])) - set(lst))
+def home_context(user_name):
+    projects = get_projects(user_name).sort_values(by='project_id',ascending=True)
+    projects=projects[['project_id','project_name','problem_type']]
+    projects = projects.to_dict(orient='records')
+    return projects
 
 def home(request):
     user_name = request.session['user_id']
+    try:
+        current_project = get_current_project(user_name)
+    except:
+        current_project=''
+    projects = home_context(user_name)
+    
     if 'project_submit' in request.POST and request.method == "POST":
         project_name = request.POST.get('problem_name')
         problem_type = request.POST['problem_state_type']
@@ -145,19 +156,13 @@ def home(request):
         except:
             project_id = 1
         upload_projects(project_id, project_name, problem_type, user_name)
-        projects = get_projects(user_name).sort_values(by='project_id',ascending=True)
-        projects=projects[['project_id','project_name','problem_type']]
-        projects = projects.to_dict(orient='records')
+        projects = home_context(user_name)
         return render(request, 'homepage.html', {'projects': projects})
     if 'select_project' in request.POST and request.method == "POST":
         print('Project ID: ', request.POST.get('select_project'))
         project_id = request.POST.get('select_project')
         update_projects(project_id, user_name)
-        
-        projects = get_projects(user_name).sort_values(by='project_id',ascending=True)
-        projects=projects[['project_id','project_name','problem_type']]
-        print('Projects: ',projects)
-        projects = projects.to_dict(orient='records')
+        projects = home_context(user_name)
         return redirect('datainput')
         # return render(request, 'homepage.html', {'projects': projects})
 
@@ -165,22 +170,12 @@ def home(request):
         print('Project ID: ', request.POST.get('delete_project'))
         project_id = request.POST.get('delete_project')
         delete_projects(project_id, user_name)
-        
-        projects = get_projects(user_name).sort_values(by='project_id',ascending=True)
-        projects=projects[['project_id','project_name','problem_type']]
-        projects = projects.to_dict(orient='records')
+        projects = home_context(user_name)
         return render(request, 'homepage.html', {'projects': projects})
     if 'logout' in request.POST and request.method == 'POST':
             logout(request)
             return redirect('login_page')
     else:
-        try:
-            current_project = get_current_project(user_name)
-        except:
-            current_project=''
-        projects = get_projects(user_name).sort_values(by='project_id',ascending=True)
-        projects=projects[['project_id','project_name','problem_type']]
-        projects = projects.to_dict(orient='records')
         return render(request, 'homepage.html', {'projects': projects, 'current_project': current_project})
 
 file_type = {'csv': pd.read_csv, 'xlsx': pd.read_excel, 'xls': pd.read_excel, 'txt': pd.read_table}
@@ -385,6 +380,14 @@ def datainput(request):
         upload_view = {'file_lists': file_lists,'project_name':project_name}
         return render(request, "datainput.html", upload_view)
 
+def dataview_context(user_name, temp_file):
+    data_in = get_current_display_file(user_name, temp_file)
+    columns = [{'field': f, 'title': f} for f in data_in.columns.to_list()]
+    project_id = get_current_project(user_name)
+    query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
+    project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
+    # project_name=sql_engine(query, return_data=True).reset_index(drop="True")['project_name'][0]
+    return project_id, project_name, data_in, columns
 
 def dataview(request):
     user_name = request.session['user_id']
@@ -392,12 +395,7 @@ def dataview(request):
         # print('Requests: ',request.POST)
         temp_file = current_file(user_name)
         # data_in=pd.read_csv(temp_file)
-        data_in = get_current_display_file(user_name, temp_file)
-        columns = [{'field': f, 'title': f} for f in data_in.columns.to_list()]
-        project_id = get_current_project(user_name)
-        query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
-        project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
-        # project_name=sql_engine(query, return_data=True).reset_index(drop="True")['project_name'][0]
+        project_id, project_name, data_in, columns = dataview_context(user_name, temp_file)
         data_object = {
             'data_object': data_in.head(20).to_html(index=False, index_names=False)
             , 'columns': columns,
@@ -409,16 +407,10 @@ def dataview(request):
     if 'describe' in request.POST and request.method == "POST":
         temp_file = current_file(user_name)
         # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        columns = [{'field': f, 'title': f} for f in data_in.columns.to_list()]
+        project_id, project_name, data_in, columns = dataview_context(user_name, temp_file)
         des = data_in.describe(include='all').T
         des['Data Type'] = data_in.dtypes
         des['Missing Observations'] = data_in.isna().sum()
-        # hr=[i for i in os.listdir(temp_dir) if i.endswith(('.csv','.xlsx'))]
-        project_id = get_current_project(user_name)
-        query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
-        project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
-        # project_name=sql_engine(query, return_data=True).reset_index(drop="True")['project_name'][0]
         des = des.rename_axis('Columns').reset_index(inplace=False)
         data_described = des.to_html(index=False)
 
@@ -427,8 +419,7 @@ def dataview(request):
     if 'columnlist' in request.POST and request.method == "POST":
         temp_file = current_file(user_name)
         # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        columns = [{'field': f, 'title': f} for f in data_in.columns.to_list()]
+        project_id, project_name, data_in, columns = dataview_context(user_name, temp_file)
         listcolumn = pd.DataFrame({'Uniques': data_in.apply(pd.Series.nunique)})
         listcolumn['Data Type'] = data_in.dtypes
         listcolumn['Missing Observations'] = data_in.isna().sum()
@@ -436,19 +427,14 @@ def dataview(request):
         listcolumn = listcolumn.rename_axis('Columns').reset_index(inplace=False)
         print(listcolumn)
         columnlist_described = listcolumn.to_html(index=False)
-        project_id = get_current_project(user_name)
-        query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
-        project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
-        # project_name=sql_engine(query, return_data=True).reset_index(drop="True")['project_name'][0]
+        
         return render(request, 'dataview.html', {'columnlist_described': columnlist_described, 'columns': columns,'project_name':project_name})
 
     if 'graph_view' in request.POST and request.method == "POST":
 
         temp_file = current_file(user_name)
         # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
-        # data_object = data_in.head(20).to_html(index=False, justify='center')
-        columns = [{'field': f, 'title': f} for f in data_in.columns.to_list()]
+        project_id, project_name, data_in, columns = dataview_context(user_name, temp_file)
         plt.clf()
         filter_columns = [i for i in data_in.columns if
                           (data_in[i].dtypes in ['float64', 'int64', 'float32', 'int32'])] + [i for i in data_in.columns
@@ -468,10 +454,7 @@ def dataview(request):
             plt.tight_layout()
 
         distribution = plot()
-        project_id = get_current_project(user_name)
-        query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
-        project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
-        # project_name=sql_engine(query, return_data=True).reset_index(drop="True")['project_name'][0]
+        
         data_object = {
             'data_object': data_in.head(20).to_html(index=False, index_names=False),
             'distribution': distribution,
@@ -485,33 +468,17 @@ def dataview(request):
         temp_file = current_file(user_name)
         # data_in=pd.read_csv(temp_file)
         start_time = time.time()
-        data_in = get_current_display_file(user_name, temp_file)
-        columns = [{'field': f, 'title': f} for f in data_in.columns.to_list()]
         target = request.POST['columns']
         save_target(user_name, temp_file, target)
-        print("--- Target Save Time: %s seconds ---" % (time.time() - start_time))
-        project_id = get_current_project(user_name)
-        query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
-        project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
-        # project_name=sql_engine(query, return_data=True).reset_index(drop="True")['project_name'][0]
+        project_id, project_name, data_in, columns = dataview_context(user_name, temp_file)
         return render(request, "dataview.html",
                       {'columns': columns, 'data_object': data_in.head(20).to_html(index=False, index_names=False),
                       'project_name':project_name})
 
     else:
-        # hr=os.listdir(r'D:\MLGUI\Mlpipeline\fileupload\temp_data')
         temp_file = current_file(user_name)
         print(temp_file)
-        # data_in=pd.read_csv(temp_file)
-        #data_in = get_current_file(user_name, temp_file)
-        data_in = get_current_display_file(user_name, temp_file)
-        # data_object = data_in.head(20).to_html(index=False, justify='center')
-        columns = [{'field': f, 'title': f} for f in data_in.columns.to_list()]
-        project_id = get_current_project(user_name)
-        #print('project: ',project_id)
-        query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
-        project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
-        # project_name=sql_engine(query, return_data=True).reset_index(drop="True")['project_name'][0]
+        project_id, project_name, data_in, columns = dataview_context(user_name, temp_file)
         return render(request, "dataview.html", {'columns': columns,
                                                  'data_object': data_in.head(20).to_html(index=False,
                                                                                          index_names=False),
@@ -1282,7 +1249,7 @@ def transform(request):
             ('_symbol_removed', Pipeline([('symbol_removal', symbol_removal)]), feats)])
         print(symbol_removal)
         data_in.loc[:, feats] = symbol_removal_pipeline.fit_transform(data_in.loc[:, feats])
-        store_operation(symbol_removal_pipeline, feats)
+        store_temp_operation(symbol_removal_pipeline, feats)
         update_train_file(temp_file, data_in)
         columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         transform_data = {
@@ -1599,11 +1566,12 @@ def visual(request):
         #feats = request.POST.getlist('cols')
         col1 = request.POST['xaxis']
         col2 = request.POST['yaxis']
+        colorby = request.POST['colorby']
         store_chart(user_name,project_id, temp_file, 'scatterplot', x=col1, y=col2)
         # fig, axes = plt.subplots( figsize=(l, l*3),nrows=l, ncols=3,squeeze=True)
         plt.figure(figsize=(7, 7))
         #plt.title('Scatterplot of ' + str.join(' & ', feats) + ' column')
-        fig = px.scatter(data_in, x=data_in[col1], y=data_in[col2])
+        fig = px.scatter(data_in, x=data_in[col1], y=data_in[col2], color = colorby)
         distribution = fig.to_html(full_html=False, default_height=500, default_width=700)
         # distribution=plot()
         columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
@@ -1766,7 +1734,7 @@ def modelling(request):
         else:
             selected_columns = pd.DataFrame({'Selected by SelectKBest': X_train.columns.to_list()})
         #with open(os.path.join(temp_dir, 'columns_selected.obj'), 'wb') as fp:pickle.dump(list(X_train.columns[sel_best_cols.get_support()]), fp)
-        save_columns_selected(temp_file, selected_columns.to_json())
+        save_columns_selected(user_name, temp_file, selected_columns.to_json())
         #feats = request.POST.getlist('cols')
         #print(data_in.loc[:, feats].head())
         columns = [{'field': f, 'title': X_train[f].dtypes} for f in X_train.columns.to_list()]
@@ -1839,7 +1807,7 @@ def modelling(request):
         columns = X_train[X_train.columns[fsel.get_support(1)]].columns.to_list()
         print(columns)
         selected_columns = pd.DataFrame({'Selected by Recursive Feature Elimination': columns})
-        save_columns_selected(temp_file, selected_columns.to_json())
+        save_columns_selected(user_name, temp_file, selected_columns.to_json())
         # feats=request.POST.getlist('cols')
         columns = [{'field': f, 'title': X_train[f].dtypes} for f in X_train.columns.to_list()]
         target_selected = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
@@ -1876,7 +1844,7 @@ def modelling(request):
         target_selected = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         columns_sel = request.POST.getlist('columns')
         selected_columns = pd.DataFrame({'Selected Columns': columns_sel})
-        save_columns_selected(temp_file, selected_columns.to_json())
+        save_columns_selected(user_name, temp_file, selected_columns.to_json())
         print(data_in.columns)
         print(data_in.corr())
         transform_data = pd.DataFrame({'Correlation': data_in.corr()[target]})
