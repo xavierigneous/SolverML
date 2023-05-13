@@ -711,8 +711,8 @@ def transform(request):
 
             columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
-                'transform_data': temp.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns
+                'transform_data': temp.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values
             }
             # print('Print after view: ',request.POST.getlist('cols'))
             # data_in.to_csv(temp_file, index=False)
@@ -741,8 +741,8 @@ def transform(request):
             # data_in.to_csv(temp_file, index=False)
             columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
-                'transform_data': temp.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns
+                'transform_data': temp.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values
             }
             return render(request, 'transform.html', transform_data)
         
@@ -791,8 +791,8 @@ def transform(request):
             # update_train_file(temp_file, data_in)
             columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
-                'transform_data': temp.head(20).to_html(index=False, index_names=False),
-                'columns': columns,
+                'transform_data': temp.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values
             }
             # data_in.to_csv(temp_file, index=False)
             return render(request, 'transform.html', transform_data)
@@ -841,8 +841,8 @@ def transform(request):
             # update_train_file(temp_file, data_in)
             columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
-                'transform_data': temp.head(20).to_html(index=False, index_names=False),
-                'columns': columns,
+                'transform_data': temp.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values
             }
             # data_in.to_csv(temp_file, index=False)
             return render(request, 'transform.html', transform_data)
@@ -891,8 +891,8 @@ def transform(request):
             # update_train_file(temp_file, data_in)
             columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
-                'transform_data': temp.head(20).to_html(index=False, index_names=False),
-                'columns': columns,
+                'transform_data': temp.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values
             }
             # data_in.to_csv(temp_file, index=False)
             return render(request, 'transform.html', transform_data)
@@ -921,8 +921,8 @@ def transform(request):
             # print(Zscore_outlier(data_in.loc[:,feats]))
             columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
-                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns,
+                'transform_data': data_in.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values,
                 'outliers': distribution
             }
             print('Print after view: ', request.POST.getlist('cols'))
@@ -951,8 +951,8 @@ def transform(request):
             # print(Zscore_outlier(data_in.loc[:,feats]))
             columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
-                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns,
+                'transform_data': data_in.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values,
                 'outliers': distribution
             }
             print('Print after view: ', request.POST.getlist('cols'))
@@ -982,8 +982,8 @@ def transform(request):
             # print(Zscore_outlier(data_in.loc[:,feats]))
             columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
-                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns,
+                'transform_data': data_in.head(20).to_dict(orient='records'),
+            'columns':data_in.columns.values,
                 'outliers': distribution
             }
             print('Print after view: ', request.POST.getlist('cols'))
@@ -1049,9 +1049,8 @@ def transform(request):
 
             columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
-                'transform_data': temp.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns,
-                # 'distribution':distribution
+                'transform_data': temp.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values
             }
             print('Print after view: ', request.POST.getlist('cols'))
             #update_train_file(temp_file, data_in)
@@ -1081,9 +1080,8 @@ def transform(request):
 
             columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
-                'transform_data': temp.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns,
-                # 'distribution':distribution
+                'transform_data': temp.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values
             }
             print('Print after view: ', request.POST.getlist('cols'))
             update_train_file(temp_file, data_in)
@@ -1121,9 +1119,8 @@ def transform(request):
 
             columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
-                'transform_data': temp.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns,
-                # 'distribution':distribution
+                'transform_data': temp.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values
             }
             print('Print after view: ', request.POST.getlist('cols'))
             #update_train_file(temp_file, data_in)
@@ -1161,9 +1158,8 @@ def transform(request):
             print(data_in.loc[:, feats])
             columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
-                'transform_data': temp.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns,
-                # 'distribution':distribution
+                'transform_data': temp.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values
             }
             print('Print after view: ', request.POST.getlist('cols'))
             #update_train_file(temp_file, data_in)
@@ -1206,9 +1202,8 @@ def transform(request):
             # print('Object Type is not Categorical')
             columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
-                'transform_data': temp.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns,
-                # 'distribution':distribution
+                'transform_data': temp.head(20).to_dict(orient='records'),
+            'columns':temp.columns.values
             }
             
             return render(request, 'transform.html', transform_data)
@@ -1227,9 +1222,8 @@ def transform(request):
             print(data_in.loc[:, feats])
             columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
-                'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-                , 'columns': columns,
-                # 'distribution':distribution
+                'transform_data': data_in.head(20).to_dict(orient='records'),
+            'columns':data_in.columns.values
             }
             print('Print after view: ', request.POST.getlist('cols'))
             # data_in.to_csv(temp_file, index=False)
@@ -1253,8 +1247,8 @@ def transform(request):
         update_train_file(temp_file, data_in)
         columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns
+            'transform_data': data_in.head(20).to_dict(orient='records'),
+            'columns':data_in.columns.values
         }
         # data_in.to_csv(temp_file, index=False)
         return render(request, 'transform.html', transform_data)
@@ -1273,8 +1267,8 @@ def transform(request):
         data_in.loc[:, feats] = date_format_pipeline.fit_transform(data_in.loc[:, feats])
         columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns
+            'transform_data': data_in.head(20).to_dict(orient='records'),
+            'columns':data_in.columns.values
         }
         # data_in.to_csv(temp_file, index=False)
         update_train_file(temp_file, data_in)
@@ -1308,8 +1302,8 @@ def transform(request):
         update_train_file(user_name, temp_file, data_in)
         columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         transform_data = {
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
-            , 'columns': columns
+            'transform_data': data_in.head(20).to_dict(orient='records'),
+            'columns':data_in.columns.values
         }
         # data_in.to_csv(temp_file, index=False)
         return render(request, 'transform.html', transform_data)
@@ -1391,10 +1385,9 @@ def transform(request):
         print(feat_transforms)
 
         transform_data = {
-            # 'feat_transforms':feat_transforms.loc[:,['Operations','Column']].to_html(index=False, index_names=False),
-            'columns': columns,
+            'transform_data': transform.head(20).to_dict(orient='records'),
+            'columns':transform.columns.values,
             'feat_transforms': feat_transforms
-            # 'transform_data':transform.head(20).to_html(index=False, index_names=False)
         }
 
         return render(request, "transform.html", transform_data)
@@ -1424,8 +1417,8 @@ def transform(request):
         update_train_file(user_name, temp_file, transform)
         # transform.to_csv(temp_file, index=False)
         transform_data = {
-            'columns': columns,
-            'transform_data': transform.head(20).to_html(index=False, index_names=False)
+            'transform_data': transform.head(20).to_dict(orient='records'),
+            'columns':transform.columns.values
         }
 
         return render(request, "transform.html", transform_data)
@@ -1456,8 +1449,8 @@ def transform(request):
         
         
         transform_data = {
-            'columns': columns,
-            'transform_data': data_in.head(20).to_html(index=False, index_names=False)
+            'transform_data': data_in.head(20).to_dict(orient='records'),
+            'columns':data_in.columns.values
         }
 
         return render(request, "transform.html", transform_data)
@@ -1474,8 +1467,10 @@ def transform(request):
         columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         print(data_final)
         transform_data = {
-            'columns': columns,
-            'transform_data': data_final.head(20).to_html(index=False, index_names=False)
+            # 'columns': columns,
+            # 'transform_data': data_final.head(20).to_html(index=False, index_names=False)
+            'transform_data': transform.head(20).to_dict(orient='records'),
+            'columns':transform.columns.values
         }
         return render(request, "transform.html", transform_data)
 
@@ -1490,7 +1485,7 @@ def transform(request):
         transform = get_current_display_file(user_name, temp_file)
         columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
         transform_data = {
-            'columns': columns,
+            # 'columns': columns,
             # 'transform_data': transform.head(20).to_html(index=False, index_names=False),
             'transform_data': transform.head(20).to_dict(orient='records'),
             'columns':transform.columns.values,

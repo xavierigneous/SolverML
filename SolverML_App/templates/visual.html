@@ -99,7 +99,14 @@
   <div class="w3-sidebar w3-bar-block w3-deep-purple w3-animate-left" id="mySidebar" style="display:none">
     <button class="w3-bar-item w3-button w3-large w3-animate-right w3-border-bottom  w3-hover-red"onclick="w3_close()">Close &times;</button>
   <a href="{% url 'homepage' %}" name='homepage' class="w3-bar-item w3-button w3-border-bottom w3-hover-green">Home</a>
-  <a href="{% url 'datainput' %}" name='datainput' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data</a>
+  <div class="w3-dropdown-hover">
+    <a class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data</a>
+    <div class="w3-dropdown-content w3-green w3-bar-block">
+      <a href="{% url 'datainput' %}" name='datainput' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data Input</a>
+      <a href="{% url 'dataview' %}" name='dataview' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data View</a>
+    </div>
+  </div>
+  <!-- <a href="{% url 'datainput' %}" name='datainput' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data</a> -->
   <a href="{% url 'transform' %}"name="transform" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Transform</a>
   <a href="{% url 'visual' %}" name="visual" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">EDA</a>
   <a href="{% url 'modelling' %}" name="visual" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Modelling</a>
