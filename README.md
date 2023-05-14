@@ -2,7 +2,7 @@
  
 An easy to use app to build your own Machine Learning model.
 
-![image](static/favicon/solverml-high-resolution-logo-color-on-transparent-background.png)
+![image](static/favicon/solverml-low-resolution-logo-color-on-transparent-background.png)
 
 Capabilities:
 1. Data Wrangling
