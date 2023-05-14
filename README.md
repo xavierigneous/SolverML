@@ -1,5 +1,7 @@
-# SolverML
-<img src="static/favicon/solverml-low-resolution-logo-color-on-transparent-background (1).png" width="100">
+<h1 align = "center">SolverML</h1>
+<p align="center">
+  <img src="static/favicon/solverml-high-resolution-logo-color-on-transparent-background.png" width="200">
+</p>
 An easy to use app to build your own Machine Learning model.
 
 Capabilities:
