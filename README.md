@@ -2,7 +2,7 @@
  
 An easy to use app to build your own Machine Learning model.
 
-![image](https://github.com/xavierigneous/SolverML/assets/16731518/f1de33b9-d903-4cb0-986c-090c0e26b0a5)
+![image](static/favicon/solverml-high-resolution-logo-color-on-transparent-background.png)
 
 Capabilities:
 1. Data Wrangling
