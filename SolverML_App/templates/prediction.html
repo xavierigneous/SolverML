@@ -91,6 +91,15 @@ function w3_close() {
   document.getElementById("mySidebar").style.display = "none";
   document.getElementById("openNav").style.display = "inline-block";
 }
+
+function data_section_toggle() {
+  var x = document.getElementById("data_section");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
+}
 </script>
 
  <link rel="icon" href="static/projectname/favicon.ico">
@@ -136,6 +145,7 @@ function w3_close() {
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <table class="table table-dark table-striped">
 <tbody>
 <style> th{
@@ -167,22 +177,8 @@ function w3_close() {
   width: max-content;
   overflow: auto;
 }
- </style>
-<!--
-{% if transform_data %}
-<h2>Leaderboard</h2>
- <td id="transform_data"> {{ transform_data | safe}} </td>
- {% endif %}
- -->
-<!--
-{% for rows in transform_data %}
-  <thead>
-    {% for j in rows.keys %}
-      <th>{{ j }}</th>
-  {% endfor %}
-</thead>
-{% endfor %}
--->
+</style>
+
 <form method="POST">
   {% csrf_token %}
   <div class="container">
@@ -210,10 +206,12 @@ function w3_close() {
 
 </table>
 
-  <button type='submit' class="predict" name="predict">Predict</button>
+  <button type='submit' name="predict" class="w3-button w3-green w3-xlarge w3-hover-white" >Predict</button>
   <br><br>
 </form>
-
+<button onclick="data_section_toggle()" class="w3-button w3-deep-purple w3-xlarge w3-hover-yellow">Data Section</button>
+<div id="container">
+<div id="data_section" style="display: none;">
   <img src="https://visualpharm.com/assets/894/Microsoft Excel-595b40b75ba036ed117d86b9.svg" style="width:100px;height:100px;">
   <form method="POST" enctype='multipart/form-data'  id='csv_upload'>
     {% csrf_token %}
@@ -228,6 +226,13 @@ function w3_close() {
       <br><br>
   
   <br>
+  <!-- <button class="sql_upload_enable" onclick="document.getElementById('SQL_Input').style.display='block'"></button> -->
+  <a class="w3-bar-item w3-button w3-border-bottom w3-hover-red, sql_upload_enable"onclick="document.getElementById('SQL_Input').style.display='block'"></a>
+  <div id = 'SQL_Input' class="w3-modal">
+    <div class="w3-modal-content w3-animate-top w3-card-4">
+      <header class="w3-container w3-pale-red">SQL Upload</header>
+      <span onclick="document.getElementById('SQL_Input').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+      <div class="w3-container w3-deep-purple">
         <label style="color:white;">Hostname: </label>
         <input id="Hostname" type="text" name="Hostname">
         <br>
@@ -249,9 +254,23 @@ function w3_close() {
         <input id="query" type="text" name="query">
 
         <button type="submit" name="test_sql_upload"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Upload</button>
+      </div>
+    </div>
+  </div>
     <br>
-
+  </div>
+</div>
+<br>
     <style type="text/css">
+    .sql_upload_enable {
+    background: url("https://img.favpng.com/7/5/11/postgresql-logo-computer-software-database-png-favpng-VzwjvpxaDys6FnN0apYZJbGV7.jpg") no-repeat center center;
+    background-size: contain;
+    top: 100;
+    right: 100px;
+    width: 60px;
+    height: 60px;
+    }
+
     .dugme1 {
     background: url("https://amritfoundationofindia.in/wp-content/uploads/2018/08/download-logo-300x300.png") no-repeat center center;
     background-size: contain;

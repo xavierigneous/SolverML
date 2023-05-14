@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <body style="background-color:rgb(49, 8, 83);">
+  <body style="background-color:rgb(49, 8, 83);"></body>
 <head>
 	<title>Data Input</title>
   <ul class="nav navbar-nav navbar-left">
@@ -123,12 +123,7 @@ document.getElementById("openNav").style.display = "inline-block";
 <a href="{% url 'interpret' %}" name="interpret" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Interpret</a>
 <a href="{% url 'prediction' %}" name="prediction" class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Prediction</a>
 </div>
-</body>
 <hr>
-<!-- <div class="navbar">
-<a href="{% url 'datainput' %}" name='datainput'>Data Input</a>
-<a href="{% url 'dataview' %}" name='dataview'>Data View</a>
-</div> -->
 <style type='text/css'>
 h6{
   font: normal normal normal 20px/1 Helvetica, arial, sans-serif;
@@ -143,7 +138,13 @@ h6:first-line{
 <body>
   <div class="container">
 	<!--<label>CSV</label>-->
-  <img src="https://visualpharm.com/assets/894/Microsoft Excel-595b40b75ba036ed117d86b9.svg" style="width:100px;height:100px;">
+  <!-- <img src="https://visualpharm.com/assets/894/Microsoft Excel-595b40b75ba036ed117d86b9.svg" style="width:100px;height:100px;"> -->
+  <a class="w3-bar-item w3-button w3-border-bottom w3-hover-red, csv_upload_enable"onclick="document.getElementById('csv_Input').style.display='block'"></a>
+  <div id = 'csv_Input' class="w3-modal">
+    <div class="w3-modal-content w3-animate-top w3-card-4">
+    <header class="w3-container w3-pale-red">CSV Upload</header>
+    <span onclick="document.getElementById('csv_Input').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+    <div class="w3-container w3-deep-purple"> 
 	<form method="POST" enctype='multipart/form-data'  id='csv_upload'>
 	 	{% csrf_token %}
 	 	   
@@ -155,14 +156,18 @@ h6:first-line{
 			    <div class="success-message" style ="color: #00FF00">{{ message }}</div>
 			    {% endif %}
 			{% endfor %}
-  </div>
-      
 	  </form>
-  <hr style="height:2px;border-width:0;color:gray;background-color:gray">
-  <div class="container">
-  <!--<label>CSV</label>-->
-  <img src="https://www.kindpng.com/picc/m/20-204238_internet-icon-internet-access-web-browser-icono-de.png" style="width:100px;height:100px;">
-  <form method="POST" enctype='multipart/form-data'  id='url_file_upload'>
+  </div>
+  </div>
+  </div>
+
+  <a class="w3-bar-item w3-button w3-border-bottom w3-hover-red, url_upload_enable"onclick="document.getElementById('URL_Input').style.display='block'"></a>
+  <div id = 'URL_Input' class="w3-modal">
+    <div class="w3-modal-content w3-animate-top w3-card-4">
+    <header class="w3-container w3-pale-red">URL Upload</header>
+    <span onclick="document.getElementById('URL_Input').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+    <div class="w3-container w3-deep-purple"> 
+    <form method="POST" enctype='multipart/form-data'  id='url_file_upload'>
     {% csrf_token %}
        <label style ="color: #00FF00">URL of data</label>
       <input type="text" name="url" multiple> <!-- Getting the file here -->
@@ -175,14 +180,16 @@ h6:first-line{
           <div class="success-message" style ="color: #00FF00">{{ message }}</div>
           {% endif %}
       {% endfor %}
-  </div>
-      
+    </div>
+    </div>
+    </div>
     </form>
-  <hr style="height:2px;border-width:0;color:gray;background-color:gray">
-  <div class="container">
-	<!--<label>SQL</label>-->
-  <!--<img src="https://visualpharm.com/assets/606/SQL-595b40b65ba036ed117d3415.svg" style="width:100px;height:100px;">-->
-  <img src="https://img.favpng.com/7/5/11/postgresql-logo-computer-software-database-png-favpng-VzwjvpxaDys6FnN0apYZJbGV7.jpg" style="width:100px;height:100px;">
+  <a class="w3-bar-item w3-button w3-border-bottom w3-hover-red, sql_upload_enable"onclick="document.getElementById('SQL_Input').style.display='block'"></a>
+  <div id = 'SQL_Input' class="w3-modal">
+    <div class="w3-modal-content w3-animate-top w3-card-4">
+    <header class="w3-container w3-pale-red">SQL Upload</header>
+    <span onclick="document.getElementById('SQL_Input').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+    <div class="w3-container w3-deep-purple"> 
 	<form method="POST" enctype='multipart/form-data'  id='sql_upload'>
 	 	{% csrf_token %}
 	 		<br>
@@ -210,7 +217,9 @@ h6:first-line{
         
       <br>
     	<button type="submit" name="sql_upload"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Upload</button>
-    
+    </div>
+</div>
+</div>
     </div>
 	  </form>
 <hr style="height:2px;border-width:2;color:gray;background-color:gray">
@@ -231,6 +240,30 @@ h6:first-line{
 </tbody>
 <button type="submit" name="merge"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Merge</button>
 <style type="text/css">
+  .csv_upload_enable {
+    background: url("https://visualpharm.com/assets/894/Microsoft Excel-595b40b75ba036ed117d86b9.svg") no-repeat center center;
+    background-size: contain;
+    top: 200;
+    right: 200px;
+    width: 120px;
+    height: 120px;
+    }
+.url_upload_enable {
+    background: url("https://www.kindpng.com/picc/m/20-204238_internet-icon-internet-access-web-browser-icono-de.png") no-repeat center center;
+    background-size: contain;
+    top: 200;
+    right: 200px;
+    width: 120px;
+    height: 120px;
+    }
+  .sql_upload_enable {
+    background: url("https://img.favpng.com/7/5/11/postgresql-logo-computer-software-database-png-favpng-VzwjvpxaDys6FnN0apYZJbGV7.jpg") no-repeat center center;
+    background-size: contain;
+    top: 200;
+    right: 200px;
+    width: 120px;
+    height: 120px;
+    }
     .dugme1 {
     background: url("https://cdn3.iconfinder.com/data/icons/social-messaging-ui-color-line/254000/82-512.png") no-repeat center center;
     background-size: contain;
@@ -286,7 +319,6 @@ h6:first-line{
 </p>
 
 <head>
-  <title>TableView</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
