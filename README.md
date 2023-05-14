@@ -1,8 +1,8 @@
-# SolverML
- 
+<h1 align = "center">SolverML</h1>
+<p align="center">
+  <img src="static/favicon/solverml-high-resolution-logo-color-on-transparent-background.png" width="200">
+</p>
 An easy to use app to build your own Machine Learning model.
-
-![image](https://github.com/xavierigneous/SolverML/assets/16731518/f1de33b9-d903-4cb0-986c-090c0e26b0a5)
 
 Capabilities:
 1. Data Wrangling
@@ -14,4 +14,4 @@ Capabilities:
 7. Hyperparameter Tuning
 8. Model Interpretation
 9. Prediction and Deployment Suite
-
+![image](https://github.com/xavierigneous/SolverML/assets/16731518/46e4bcc1-9e13-4ddd-aa59-ff8c44a7e416)
