@@ -3,6 +3,10 @@
   <body style="background-color:rgb(49, 8, 83);"></body>
 <head>
  <title>EDA View</title>
+ <ul class="nav navbar-nav navbar-left">
+  <h1 id="logo"><a href="{% url 'SolverML' %}"><img src="/static/favicon/solverml-high-resolution-logo-white-on-transparent-background.png" 
+      width="100" height="100" alt="logo" /></a></h1>
+</ul>
 </head>
 <body>
   <style type="text/css">
@@ -77,14 +81,14 @@
 <body>
 
   <script>
-    function w3_open() {
+    function sidebar_open() {
       // document.getElementById("new_project").style.marginLeft = "none";
   document.getElementById("mySidebar").style.width = "10%";
   document.getElementById("mySidebar").style.display = "block";
   document.getElementById("openNav").style.display = 'none';
   // document.getElementsByName("homepage").textContent =
   }
-  function w3_close() {
+  function sidebar_close() {
   // document.getElementById("new_project").style.marginLeft = "0%";
   document.getElementById("mySidebar").style.display = "none";
   document.getElementById("openNav").style.display = "inline-block";
@@ -94,10 +98,10 @@
    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
    <meta name="viewport" content="width=device-width, initial-scale=1">
    <div class="w3">
-    <button id="openNav" class="w3-button w3-deep-purple w3-xlarge" onclick="w3_open()">&#9776;</button>
+    <button id="openNav" class="w3-button w3-deep-purple w3-xlarge" onclick="sidebar_open()">&#9776;</button>
   </div>
   <div class="w3-sidebar w3-bar-block w3-deep-purple w3-animate-left" id="mySidebar" style="display:none">
-    <button class="w3-bar-item w3-button w3-large w3-animate-right w3-border-bottom  w3-hover-red"onclick="w3_close()">Close &times;</button>
+    <button class="w3-bar-item w3-button w3-large w3-animate-right w3-border-bottom  w3-hover-red"onclick="sidebar_close()">Close &times;</button>
   <a href="{% url 'homepage' %}" name='homepage' class="w3-bar-item w3-button w3-border-bottom w3-hover-green">Home</a>
   <div class="w3-dropdown-hover">
     <a class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data</a>

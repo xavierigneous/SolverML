@@ -3,6 +3,10 @@
   <body style="background-color:rgb(49, 8, 83);"></body>
 <head>
   <title>Interpret View</title>
+  <ul class="nav navbar-nav navbar-left">
+    <h1 id="logo"><a href="{% url 'SolverML' %}"><img src="/static/favicon/solverml-high-resolution-logo-white-on-transparent-background.png" 
+        width="100" height="100" alt="logo" /></a></h1>
+  </ul>
 </head>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -152,7 +156,7 @@ document.getElementById("openNav").style.display = "inline-block";
   border:0.3px solid rgb(238, 17, 17);
 }
   </style>
-
+{% if transform_data %}
 <p>
 <tr>
     <th>Choose Model</th>
@@ -167,9 +171,11 @@ document.getElementById("openNav").style.display = "inline-block";
   {% for i,j in rows.items %}
       <td>{{ j }}</td>
   {% endfor %}
-  
-  </tr>
+</tr>
 {% endfor %}
+{% else %}
+<label style="color:rgb(240, 71, 71);">Train a model first.</label>
+{% endif %}
 </tbody>
 </table>
   </p>
