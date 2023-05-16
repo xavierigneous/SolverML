@@ -127,24 +127,20 @@ def new_file_queries(user_name, project_id, file_name, df):
     sql_engine().execute(query)
     operations=pickle.dumps(pd.DataFrame(index=range(0),columns=['Operation', 'Column', 'Key']))
     sql_engine().execute("UPDATE public.train_data SET operations= %s where user_name=%s AND project_id=%s AND file_name=%s", operations,user_name,project_id,file_name)
-    # sql_engine()().execute()
-    # sql_engine().execute(query)
+    
     query = f"INSERT INTO public.modelling(user_name,project_id,file_name) " \
             f"VALUES ('{user_name}','{project_id}','{file_name}') "
-    # sql_engine()().execute(query)
+
     sql_engine().execute(query)
     models=pickle.dumps(pd.DataFrame(index=range(0),columns=['model_name', 'model_file','fit_time']))
-    sql_engine().execute("UPDATE public.modelling SET models= %s where user_name=%s AND project_id=%s AND file_name=%s", models,user_name,project_id,file_name)
-    # sql_engine().execute(query)
-    # sql_engine()().execute()    
+    sql_engine().execute("UPDATE public.modelling SET models= %s where user_name=%s AND project_id=%s AND file_name=%s", models,user_name,project_id,file_name)  
 
     query = f"INSERT INTO public.test_data(user_name,project_id,file_name) " \
             f"VALUES ('{user_name}','{project_id}','{file_name}') "
-    # sql_engine()().execute(query)
+    
     sql_engine().execute(query)
     query = f"INSERT INTO public.eda(user_name,project_id,file_name,charts) " \
             f"VALUES ('{user_name}','{project_id}','{file_name}','{charts.to_json()}') "
-    # sql_engine()().execute(query)
     sql_engine().execute(query)
 
 def file_upload(user_name, df,project_id,file_name):

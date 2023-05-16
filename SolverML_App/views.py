@@ -76,7 +76,9 @@ from db_operations import sql_engine, get_projects, upload_projects, update_proj
     save_columns_selected, get_columns_selected, save_leaderboard, get_leaderboard, store_all_operation, store_chart, temporary, \
     retrieve_temp_operation, temp_data_remove
 
-############### PLotting Operations import #######################
+#################### Operations import ###########################
+from feat_operations import *
+############### Plotting Operations import #######################
 from metrics_plot import plot, plot_classification, plot_regression, linear_feat_importance, tree_feat_importance, feat_importance_init
 ############## Modelling Operations import #######################
 from modelling_utilities import fit_ml_algo, fit_ml_algo_predict, roc_auc_score_multiclass, train_test_fit
@@ -484,204 +486,32 @@ def dataview(request):
                                                                                          index_names=False),
                                                  'project_name':project_name})
 
-
-def symbol_remove(x):
-    x = x.replace('\ |\?|\,|\!|\/|\;|\:|\$', '', regex=True)
-    x = x.astype(float)
-    return x
-class type_change:
-    def to_float(x):
-        x = x.replace("\ |\?|\,|\!|\/|\;|\:|\$|\'", '', regex=True)
-        x = x.replace(r'', np.nan, regex=True)
-        x = x.astype(float)
-        return x
-    def to_int(x):
-        #x = x.replace('\ |\?|\,|\!|\/|\;|\:|\$', '', regex=True)
-        x = x.replace(r'', np.nan, regex=True)
-        x = x.astype(int)
-        return x
-    def to_string(x):
-        #x = x.replace(r'', np.nan, regex=True)
-        x = x.astype(str)
-        return x
-
-class transformations:
-    def log_transform(x):
-        return np.log1p(x)
-
-    def log_inverse_transform(x):
-        return np.exp(x) - 1
-    
-    def square_transform(x):
-        return np.log1p(x)
-    
-    def box_cox_transform(x):
-        return stats.boxcox(x)
-
-
-def datetimeformat(feats):
-    return pd.to_datetime(data_in.loc[:, feats])
-
-
-def onehotencode(data_in, feats):
-    return pd.get_dummies(data_in, columns=feats)
-
-
-
-def reverse_one_hot(df, cols):
-    for col in cols:
-        print('Removing : ', col)
-        unencode = pd.DataFrame(
-            [x for x in np.where(df.filter(like=col) == 1, df.filter(like=col).columns, '').flatten().tolist() if
-             len(x) > 0], columns=[col])
-        df = df.drop(df.filter(like=col), axis=1)
-        df = pd.concat([df, unencode], axis=1, ignore_index=False)
-    return df
-
-
-def store_temp_operation(operation, cols):
-    feat_engine = pd.DataFrame(index=range(0), columns=['Operation', 'Column', 'Key'])
-    print(type(operation).__name__)
-    if type(operation).__name__=='ColumnTransformer':
-        print('TEMP ',type(operation).__name__)
-        key=[operation.transformers[0][0] + '_' + x for x in cols if not str(x) == "nan"]
-        print(key)
-        feat_engine = feat_engine.append({'Operation': operation, 'Column': cols, 'Key':[key]}, ignore_index=True)
-    elif type(operation).__name__=='function':
-        print(operation.__name__)
-        key=[operation.__name__ + '_' + x for x in cols if not str(x) == "nan"]
-        print(key)
-        feat_engine = feat_engine.append({'Operation': operation, 'Column': cols, 'Key':key}, ignore_index=True)
-    elif type(operation).__name__=='defaultdict':
-        print(operation.default_factory.__name__)
-        key=[operation.default_factory.__name__ + '_' + x for x in cols if not str(x) == "nan"]
-        print(key)
-        feat_engine = feat_engine.append({'Operation': operation, 'Column': cols, 'Key':key}, ignore_index=True)
-    else:
-        feat_engine = feat_engine.append({'Operation': operation, 'Column': cols}, ignore_index=True)
-
-    
-    print(feat_engine)
-    feat_engine.to_pickle(os.path.join(temp_dir, 'temp_operations.pkl'))
-
-
-def apply_operations(test_data, feat_engine):
-    print(feat_engine)
-    for operation, column in zip(feat_engine['Operation'], feat_engine['Column']):
-        print(operation, ' on ', column)
-        print(test_data.loc[:, column].dtypes)
-        print(type(operation).__name__)
-        if type(operation).__name__ == 'ColumnTransformer':
-            print('Operation: ', operation.transformers[0][1][0])
-            try:
-                test_data.loc[:, column] = test_data.loc[:, column].apply(operation.fit_transform)
-            except:
-                test_data.loc[:, column] = operation.fit_transform(test_data.loc[:, column])
-            print(test_data.loc[:, column])
-        elif type(operation).__name__ == 'function':
-            print(operation.__name__)
-            if operation.__name__ == 'onehotencode':
-                test_data = onehotencode(test_data, column)
-                print(test_data)
-            else:
-                print(operation)
-                print('result ', test_data.loc[:, column].apply(operation))
-                test_data.loc[:, column] = test_data.loc[:, column].apply(operation)
-                # print(operation)
-                print(test_data.loc[:, column].dtypes)
-        elif type(operation).__name__ == 'defaultdict':
-            type(operation)
-            print('result ')
-            print(test_data.loc[:, column].apply(lambda x: operation[x.name].fit_transform(x)))
-            test_data.loc[:, column] = test_data.loc[:, column].apply(lambda x: operation[x.name].fit_transform(x))
-            print(test_data.loc[:, column].dtypes)
-    return test_data
-
-
-def apply_reverse_operations(user_name, test_data, feat_engine):
-    print(feat_engine)
-    for operation, column in zip(feat_engine['Operation'], feat_engine['Column']):
-        print(operation, ' on ', column)
-        print(type(operation).__name__)
-        if type(operation).__name__ == 'ColumnTransformer':
-            print('Operation: ', operation.transformers[0][1][0])
-            if operation.transformers[0][0] in ['_int','_float','_string','remove_outliers','median_impute_outliers','mean_impute_outliers', '_log', '_sqrt',\
-                                                '_boxcox']:
-                print('Applying data reversal: ',operation.transformers[0][0])
-                project_id=get_current_project(user_name)
-                query=f"select temp from public.train_data where user_name='{user_name}' AND project_id='{project_id}' AND use_file='Yes'".format(user_name, project_id)
-                # df=pd.read_json(sql_engine()(query, return_data=True)['temp'][0])
-                df=pd.read_json(psql.read_sql_query(query, sql_engine())['temp'][0])
-                print('temp data',df)
-                #df=pd.read_json(data['temp'][0])
-                test_data.loc[:,column]=df[column]
-            else:    
-                try:
-                    test_data.loc[:, column] = test_data.loc[:, column].apply(
-                        operation.transformers[0][1][0].inverse_transform)
-                except NotFittedError:
-                    print('This Operation has no inverse function')
-                    project_id=get_current_project(user_name)
-                    query=f"select temp from public.train_data where user_name='{user_name}' AND project_id='{project_id}' AND use_file='Yes'".format(user_name, project_id)
-                    start_time = time.time()
-                    data = psql.read_sql_query(query, sql_engine())
-                    # data=sql_engine()(query, return_data=True)
-                    print("--- Fit Time: %s seconds ---" % (time.time() - start_time))
-                    df=pd.read_json(data['temp'][0])
-                    test_data.loc[:,column]=df[column]
-
-                except Exception as ex:
-                    print('temp error ',ex)
-                    test_data.loc[:, column] = operation.transformers[0][1][0].inverse_transform(test_data.loc[:, column])
-                print(test_data.loc[:, column])
-        elif type(operation).__name__ == 'function':
-            print(operation.__name__)
-            if operation.__name__ in ['onehotencode','drop_columns']:
-                print(operation.__name__,' reverse')
-                if operation.__name__ == 'onehotencode':
-                    test_data = reverse_one_hot(test_data, column)
-                project_id=get_current_project(user_name)
-                query=f"select temp from public.train_data where user_name='{user_name}' AND project_id='{project_id}' AND use_file='Yes'".format(user_name, project_id)
-                # df=pd.read_json(sql_engine()(query, return_data=True)['temp'][0])
-                df=pd.read_json(psql.read_sql_query(query, sql_engine())['temp'][0])
-                #df=pd.read_json(data['temp'][0])
-                test_data.loc[:,column]=df[column]
-            else:
-                print(operation)
-                print('result ', test_data.loc[:, column].apply(operation))
-                test_data.loc[:, column] = test_data.loc[:, column].apply(operation)
-                # print(operation)
-                print(test_data.loc[:, column].dtypes)
-        elif type(operation).__name__ == 'defaultdict':
-            type(operation)
-            print('result ')
-            print(test_data.loc[:, column].apply(lambda x: operation[x.name].inverse_transform(x)))
-            test_data.loc[:, column] = test_data.loc[:, column].apply(lambda x: operation[x.name].inverse_transform(x))
-            print(test_data.loc[:, column].dtypes)
-    return test_data
-
-def drop_columns(data_in,cols):
-    return data_in.drop(cols,axis=1)
-def remove_outlier_IQR(df):
-    Q1=df.quantile(0.25)
-    Q3=df.quantile(0.75)
-    IQR=Q3-Q1
-    df_final=df[~((df<(Q1-1.5*IQR)) | (df>(Q3+1.5*IQR)))]
-    return df_final
-
+def transform_context(user_name):
+    temp_file = current_file(user_name)
+    # transform=pd.read_csv(temp_file)
+    data_in = get_current_file(user_name, temp_file)
+    project_id=get_current_project(user_name)
+    query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
+    project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
+    # project_name=sql_engine()(query, return_data=True).reset_index(drop="True")['project_name'][0]
+    #transform = get_current_file(user_name, temp_file)
+    transform = get_current_display_file(user_name, temp_file)
+    columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
+    return temp_file, data_in, project_id, project_name, transform, columns
 
 def transform(request):
     user_name = request.session['user_id']
+    temp_file, data_in, project_id, project_name, transform, columns = transform_context(user_name)
     # print(request.POST)
     if 'submit_transformation' in request.POST and request.method == "POST":
         print(request.POST['select_transformation'])
         operation_chosen = request.POST['select_transformation']
         print("Operation Chosen: ", operation_chosen)
         if 'Label Encoding' in operation_chosen:
-            # print('Requests: ',request.POST)
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # # print('Requests: ',request.POST)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             print('Label Encoding in Progress')
             feats = request.POST.getlist('cols')
             print(data_in.loc[:, feats].head())
@@ -709,19 +539,20 @@ def transform(request):
                 temp = data_in.copy()
 
 
-            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
-            'columns':temp.columns.values
+            'columns':temp.columns.values,
+            'project_name':project_name
             }
             # print('Print after view: ',request.POST.getlist('cols'))
             # data_in.to_csv(temp_file, index=False)
             return render(request, 'transform.html', transform_data)
         if 'One Hot Encoding' in operation_chosen:
             # print('Requests: ',request.POST)
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
             print('One Hot Encoding in Progress on : ', feats)
             print(onehotencode(data_in, feats))
@@ -739,19 +570,20 @@ def transform(request):
             store_temp_operation(onehotencode, feats)
             # update_train_file(temp_file, data_in)
             # data_in.to_csv(temp_file, index=False)
-            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
-            'columns':temp.columns.values
+            'columns':temp.columns.values,
+            'project_name':project_name
             }
             return render(request, 'transform.html', transform_data)
         
         
         if 'Log Transform' in operation_chosen:
             # print('Requests: ',request.POST)
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             
             feats = request.POST.getlist('cols')
             print('Log Transform on ',feats)
@@ -789,19 +621,20 @@ def transform(request):
                 temp = data_in.copy()
             print(temp)
             # update_train_file(temp_file, data_in)
-            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            # columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
-            'columns':temp.columns.values
+            'columns':temp.columns.values,
+            'project_name':project_name
             }
             # data_in.to_csv(temp_file, index=False)
             return render(request, 'transform.html', transform_data)
 
         if 'Square Root Transform' in operation_chosen:
             # print('Requests: ',request.POST)
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             
             feats = request.POST.getlist('cols')
             print('Square Root Transform on ',feats)
@@ -839,19 +672,20 @@ def transform(request):
                 temp = data_in.copy()
             print(temp)
             # update_train_file(temp_file, data_in)
-            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            # columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
-            'columns':temp.columns.values
+            'columns':temp.columns.values,
+            'project_name':project_name
             }
             # data_in.to_csv(temp_file, index=False)
             return render(request, 'transform.html', transform_data)
         
         if 'Box Cox Transform' in operation_chosen:
             # print('Requests: ',request.POST)
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             
             feats = request.POST.getlist('cols')
             print('Box Cox Transform on ',feats)
@@ -889,19 +723,20 @@ def transform(request):
                 temp = data_in.copy()
             print(temp)
             # update_train_file(temp_file, data_in)
-            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            # columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
-            'columns':temp.columns.values
+            'columns':temp.columns.values,
+            'project_name':project_name
             }
             # data_in.to_csv(temp_file, index=False)
             return render(request, 'transform.html', transform_data)
 
         if 'Remove Outlier' in operation_chosen:
             # print('Requests: ',request.POST)
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
             remove_outliers = Pipeline([('remove_outliers',
                             FunctionTransformer(remove_outlier_IQR))])
@@ -919,11 +754,12 @@ def transform(request):
             plt.tight_layout()
             distribution = plot()
             # print(Zscore_outlier(data_in.loc[:,feats]))
-            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
                 'transform_data': data_in.head(20).to_dict(orient='records'),
             'columns':temp.columns.values,
-                'outliers': distribution
+                'outliers': distribution,
+            'project_name':project_name
             }
             print('Print after view: ', request.POST.getlist('cols'))
             # data_in.to_csv(temp_file, index=False)
@@ -931,9 +767,9 @@ def transform(request):
 
         if 'Median Impute Outliers' in operation_chosen:
             
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
             remove_outliers = Pipeline([('remove_outliers',
                             FunctionTransformer(remove_outlier_IQR))])
@@ -953,7 +789,8 @@ def transform(request):
             transform_data = {
                 'transform_data': data_in.head(20).to_dict(orient='records'),
             'columns':temp.columns.values,
-                'outliers': distribution
+                'outliers': distribution,
+            'project_name':project_name
             }
             print('Print after view: ', request.POST.getlist('cols'))
             # data_in.to_csv(temp_file, index=False)
@@ -961,9 +798,9 @@ def transform(request):
 
         if 'Mean Impute Outliers' in operation_chosen:
             
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
             see_outliers = Pipeline([('int_transform',
                             FunctionTransformer(remove_outlier_IQR)),
@@ -980,11 +817,12 @@ def transform(request):
             plt.tight_layout()
             distribution = plot()
             # print(Zscore_outlier(data_in.loc[:,feats]))
-            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
                 'transform_data': data_in.head(20).to_dict(orient='records'),
             'columns':data_in.columns.values,
-                'outliers': distribution
+                'outliers': distribution,
+            'project_name':project_name
             }
             print('Print after view: ', request.POST.getlist('cols'))
             # data_in.to_csv(temp_file, index=False)
@@ -994,9 +832,9 @@ def transform(request):
         if 'convert_to_int' in operation_chosen:
             # print('Requests: ',request.POST)
             print('Converting to Integer\n')
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
 
             int_transform = Pipeline([('int_transform',
@@ -1013,11 +851,12 @@ def transform(request):
             store_temp_operation(int_transform_pipeline, feats)
             print(temp.loc[:, feats])
 
-            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            # columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_html(index=False, index_names=False)
                 , 'columns': columns,
-                # 'distribution':distribution
+                # 'distribution':distribution,
+                'project_name':project_name
             }
             print('Print after view: ', request.POST.getlist('cols'))
             #update_train_file(temp_file, data_in)
@@ -1027,9 +866,9 @@ def transform(request):
         if 'convert_to_float' in operation_chosen:
             # print('Requests: ',request.POST)
             print('Converting to Float\n')
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
 
             float_transform = Pipeline([('float_transform',
@@ -1047,10 +886,11 @@ def transform(request):
             store_temp_operation(float_transform_pipeline, feats)
             print(temp.loc[:, feats])
 
-            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            # columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
-            'columns':temp.columns.values
+            'columns':temp.columns.values,
+            'project_name':project_name
             }
             print('Print after view: ', request.POST.getlist('cols'))
             #update_train_file(temp_file, data_in)
@@ -1059,9 +899,9 @@ def transform(request):
         if 'convert_to_string' in operation_chosen:
             # print('Requests: ',request.POST)
             print('Converting to String\n')
-            temp_file = current_file(user_name)
-            # data_in=pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in=pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
 
             int_transform = Pipeline([('string_transform',
@@ -1078,10 +918,11 @@ def transform(request):
             store_temp_operation(int_transform_pipeline, feats)
             print(temp.loc[:, feats])
 
-            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            # columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
-            'columns':temp.columns.values
+            'columns':temp.columns.values,
+            'project_name':project_name
             }
             print('Print after view: ', request.POST.getlist('cols'))
             update_train_file(temp_file, data_in)
@@ -1090,9 +931,9 @@ def transform(request):
 
         if 'Median Impute' in operation_chosen:
             print('Median Imputation\n')
-            temp_file = current_file(user_name)
-            # data_in = pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in = pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
             print(data_in.loc[:, feats])
 
@@ -1117,10 +958,11 @@ def transform(request):
                 temp = data_in.copy()    
 
 
-            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            # columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
-            'columns':temp.columns.values
+            'columns':temp.columns.values,
+            'project_name':project_name
             }
             print('Print after view: ', request.POST.getlist('cols'))
             #update_train_file(temp_file, data_in)
@@ -1129,9 +971,9 @@ def transform(request):
 
         if 'Mean Impute' in operation_chosen:
             print('Mean Imputation\n')
-            temp_file = current_file(user_name)
-            # data_in = pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in = pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
             impute_pipeline = ColumnTransformer([
                 ('_mean_imputed', Pipeline([('mean_impute', SimpleImputer(strategy='mean', add_indicator=False))]), feats)])
@@ -1156,19 +998,20 @@ def transform(request):
                 print('Not happening')
                 messages.error(request, 'Mode Impute Unsuccessful')
             print(data_in.loc[:, feats])
-            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            # columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
-            'columns':temp.columns.values
+            'columns':temp.columns.values,
+            'project_name':project_name
             }
             print('Print after view: ', request.POST.getlist('cols'))
             #update_train_file(temp_file, data_in)
             return render(request, 'transform.html', transform_data)
         if 'Mode Impute' in operation_chosen:
             print('Mode Imputation\n')
-            temp_file = current_file(user_name)
-            # data_in = pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in = pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
             print(data_in.loc[:, feats].dtypes)
             #if data_in.loc[:, feats].dtypes.all()=='object':
@@ -1200,19 +1043,20 @@ def transform(request):
 
             # else:
             # print('Object Type is not Categorical')
-            columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
+            # columns = [{'field': f, 'title': temp[f].dtypes} for f in temp.columns.to_list()]
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
-            'columns':temp.columns.values
+            'columns':temp.columns.values,
+            'project_name':project_name
             }
             
             return render(request, 'transform.html', transform_data)
 
         if 'Zero Impute' in operation_chosen:
             print('Mean Imputation\n')
-            temp_file = current_file(user_name)
-            # data_in = pd.read_csv(temp_file)
-            data_in = get_current_file(user_name, temp_file)
+            # temp_file = current_file(user_name)
+            # # data_in = pd.read_csv(temp_file)
+            # data_in = get_current_file(user_name, temp_file)
             feats = request.POST.getlist('cols')
             zero_imp = SimpleImputer(missing_values=np.NaN, strategy='constant', fill_value=0)
             zero_impute_pipeline = ColumnTransformer([
@@ -1220,10 +1064,11 @@ def transform(request):
             data_in.loc[:, feats] = zero_impute_pipeline.fit_transform(data_in.loc[:, feats])
             store_temp_operation(zero_impute_pipeline, feats)
             print(data_in.loc[:, feats])
-            columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+            # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
             transform_data = {
                 'transform_data': data_in.head(20).to_dict(orient='records'),
-            'columns':data_in.columns.values
+            'columns':data_in.columns.values,
+            'project_name':project_name
             }
             print('Print after view: ', request.POST.getlist('cols'))
             # data_in.to_csv(temp_file, index=False)
@@ -1232,9 +1077,9 @@ def transform(request):
     
     if 'symbol_removal' in request.POST and request.method == "POST":
         # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        # temp_file = current_file(user_name)
+        # # data_in=pd.read_csv(temp_file)
+        # data_in = get_current_file(user_name, temp_file)
         feats = request.POST.getlist('cols')
         print('Symbol Removal in Progress on : ', feats)
 
@@ -1245,19 +1090,20 @@ def transform(request):
         data_in.loc[:, feats] = symbol_removal_pipeline.fit_transform(data_in.loc[:, feats])
         store_temp_operation(symbol_removal_pipeline, feats)
         update_train_file(temp_file, data_in)
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+        # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         transform_data = {
             'transform_data': data_in.head(20).to_dict(orient='records'),
-            'columns':data_in.columns.values
+            'columns':data_in.columns.values,
+            'project_name':project_name
         }
         # data_in.to_csv(temp_file, index=False)
         return render(request, 'transform.html', transform_data)
 
     if 'date_time' in request.POST and request.method == "POST":
         # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
+        # temp_file = current_file(user_name)
         # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        # data_in = get_current_file(user_name, temp_file)
         feats = request.POST.getlist('cols')
         print('Date Time Conversion in Progress on : ', feats)
         print(data_in.loc[:, feats].head())
@@ -1268,7 +1114,8 @@ def transform(request):
         columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         transform_data = {
             'transform_data': data_in.head(20).to_dict(orient='records'),
-            'columns':data_in.columns.values
+            'columns':data_in.columns.values,
+            'project_name':project_name
         }
         # data_in.to_csv(temp_file, index=False)
         update_train_file(temp_file, data_in)
@@ -1276,10 +1123,10 @@ def transform(request):
 
     if 'drop_column' in request.POST and request.method == "POST":
         # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        project_id=get_current_project(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        # temp_file = current_file(user_name)
+        # project_id=get_current_project(user_name)
+        # # data_in=pd.read_csv(temp_file)
+        # data_in = get_current_file(user_name, temp_file)
         feats = request.POST.getlist('cols')
         print('Removing : ', feats)
         #data_in = data_in.drop(feats, axis=1)
@@ -1290,7 +1137,7 @@ def transform(request):
         store_temp_operation(drop_columns, feats)
         operations = use_operation(user_name)
         temp_operations = retrieve_temp_operation(user_name).reset_index(drop=True)
-        print('vdvddvdvdvd',temp_operations)
+        print(temp_operations)
         operations = pd.concat([operations, temp_operations], ignore_index=True)
         print('Concat Operation :',operations)
         store_all_operation(user_name, temp_file, operations)
@@ -1300,16 +1147,17 @@ def transform(request):
 
         save_columns_selected(user_name, temp_file, selected_columns.to_json())
         update_train_file(user_name, temp_file, data_in)
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+        # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         transform_data = {
             'transform_data': data_in.head(20).to_dict(orient='records'),
-            'columns':data_in.columns.values
+            'columns':data_in.columns.values,
+            'project_name':project_name
         }
         # data_in.to_csv(temp_file, index=False)
         return render(request, 'transform.html', transform_data)
     if 'multicoll' in request.POST and request.method == "POST":
-        temp_file=current_file(user_name)
-        data_in = get_current_file(user_name, temp_file)
+        # temp_file=current_file(user_name)
+        # data_in = get_current_file(user_name, temp_file)
         plt.clf()
         feats = data_in.select_dtypes(exclude=[object]).columns.values
         if len(feats) == 0:
@@ -1330,36 +1178,38 @@ def transform(request):
         plt.tight_layout()
         distribution = plot()
         print(vif_data)
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+        # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         transform_data = {
             'transform_data': data_in.head(20).to_html(index=False, index_names=False),
             'columns': columns,
-            'distribution':distribution
+            'distribution':distribution,
+            'project_name':project_name
         }
         return render(request, 'transform.html', transform_data)
 
     if 'feat_importance' in request.POST and request.method == "POST":
         # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
+        # temp_file = current_file(user_name)
         # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        # data_in = get_current_file(user_name, temp_file)
         target = get_target(user_name, temp_file,project_id)
         print(target)
         transform_data = pd.DataFrame({'Correlation': data_in.corr()[target]})
         transform_data = transform_data.rename_axis('Columns').reset_index(inplace=False)
 
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+        # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         transform_data = {
             'transform_data': transform_data.to_html(index=False, index_names=False)
             , 'columns': columns,
+            'project_name':project_name
         }
         print('Print after view: ', request.POST.getlist('cols'))
         # data_in.to_csv(temp_file, index=False)
         return render(request, 'transform.html', transform_data)
     if 'view_steps' in request.POST and request.method == "POST":
-        temp_file = current_file(user_name)
+        # temp_file = current_file(user_name)
         # transform=pd.read_csv(temp_file)
-        transform = get_current_file(user_name, temp_file)
+        # transform = get_current_file(user_name, temp_file)
         columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
 
         feat_transforms = use_operation(user_name)
@@ -1387,24 +1237,23 @@ def transform(request):
         transform_data = {
             'transform_data': transform.head(20).to_dict(orient='records'),
             'columns':transform.columns.values,
-            'feat_transforms': feat_transforms
+            'feat_transforms': feat_transforms,
+            'project_name':project_name
         }
 
         return render(request, "transform.html", transform_data)
 
     if 'submit_steps' in request.POST and request.method == "POST":
-        temp_file = current_file(user_name)
+        # temp_file = current_file(user_name)
         # transform=pd.read_csv(temp_file)
-        transform = get_current_file(user_name, temp_file)
-        
-
+        # transform = get_current_file(user_name, temp_file)
         operations = use_operation(user_name)
         print(operations)
         temp_operations = retrieve_temp_operation(user_name).reset_index(drop=True)
         column_list =temp_operations['Column'].tolist()
         feats = list(set(reduce(lambda x,y: x+y, column_list)))
         
-        temporary_data=transform.loc[:,feats]
+        temporary_data=data_in.loc[:,feats]
         temporary(user_name, temporary_data)
         
         #store_operation(temp_operations['Operation'][0],temp_operations['Column'][0])
@@ -1412,7 +1261,7 @@ def transform(request):
         print('Concatenated: ')
         print(operations)
         store_all_operation(user_name, temp_file, operations)
-        transform = apply_operations(transform, temp_operations)
+        transform = apply_operations(data_in, temp_operations)
         columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
         update_train_file(user_name, temp_file, transform)
         # transform.to_csv(temp_file, index=False)
@@ -1423,9 +1272,9 @@ def transform(request):
 
         return render(request, "transform.html", transform_data)
     if 'remove_steps' in request.POST and request.method == "POST":
-        temp_file = current_file(user_name)
+        # temp_file = current_file(user_name)
         # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        # data_in = get_current_file(user_name, temp_file)
         # columns=[{'field':f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         print('Chosen Option: ', request.POST.getlist('trans'))
         index = request.POST.getlist('trans')
@@ -1443,10 +1292,9 @@ def transform(request):
         data_in = apply_reverse_operations(user_name, data_in, remove_steps)
         print('Transformed_Data', data_in)
 
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+        # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         update_train_file(user_name, temp_file, data_in)
         temp_data_remove(user_name, remove_steps['Column'].reset_index(drop=True)[0])
-        
         
         transform_data = {
             'transform_data': data_in.head(20).to_dict(orient='records'),
@@ -1460,11 +1308,11 @@ def transform(request):
         feat_engine = use_operation(user_name)
         some_list =feat_engine['Column'].tolist()
         single_list = list(set(reduce(lambda x,y: x+y, some_list)))
-        temp_file = current_file(user_name)
+        # temp_file = current_file(user_name)
         # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        # data_in = get_current_file(user_name, temp_file)
         data_final=data_in[single_list]
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+        # columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         print(data_final)
         transform_data = {
             # 'columns': columns,
@@ -1475,15 +1323,7 @@ def transform(request):
         return render(request, "transform.html", transform_data)
 
     else:
-        temp_file = current_file(user_name)
-        # transform=pd.read_csv(temp_file)
-        project_id=get_current_project(user_name)
-        query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
-        project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
-        # project_name=sql_engine()(query, return_data=True).reset_index(drop="True")['project_name'][0]
-        #transform = get_current_file(user_name, temp_file)
-        transform = get_current_display_file(user_name, temp_file)
-        columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
+        
         transform_data = {
             # 'columns': columns,
             # 'transform_data': transform.head(20).to_html(index=False, index_names=False),
@@ -1494,18 +1334,16 @@ def transform(request):
 
         return render(request, "transform.html", transform_data)
 
+# temp_file, data_in, project_id, project_name, transform, columns = transform_context(user_name)
 
 def visual(request):        
     user_name = request.session['user_id']
     if 'distplot' in request.POST and request.method == "POST":
-        # print('Requests: ',request.POST)
         print(current_file(user_name))
         temp_file = current_file(user_name)
         data_in = get_current_file(user_name, temp_file)
         project_id = get_current_project(user_name)
-        #file_name = psql.read_sql_query("select file_name from public.train_data where use_file='Yes'", engine).reset_index(drop=True)['file_name'][0]
-        # data_in=pd.read_csv(temp_file)
-        # feats=request.POST.getlist('cols')
+        
         col1 = request.POST['xaxis']
         col2 = request.POST['yaxis']
         colorby = request.POST['colorby']
@@ -1522,7 +1360,6 @@ def visual(request):
         columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         
         distribution = {'distribution': distribution, 'columns': columns, 'columns1': columns, 'columns2': columns}
-        # return render(request, 'transform.html', distribution)
         return render(request, "visual.html", distribution)
 
     if 'countplot' in request.POST and request.method == "POST":
@@ -1546,21 +1383,14 @@ def visual(request):
         fig = px.histogram(data_in, x=col1, color=colorby, barmode='group')
 
         distribution = fig.to_html(full_html=False, default_height=500, default_width=700)
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        # columns=[{'field':f, 'title': f} for f in data_in.columns.to_list()]
         distribution = {'distribution': distribution, 'columns': columns, 'columns1': columns, 'columns2': columns, }
         return render(request, 'visual.html', distribution)
 
     if 'scatterplot' in request.POST and request.method == "POST":
         # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        data_in, columns = visual_default(user_name)
         project_id = get_current_project(user_name)
-        #file_name = psql.read_sql_query("select file_name from public.train_data where use_file='Yes'", engine).reset_index(drop=True)['file_name'][0]
         plt.clf()
-        # l=(len(data_in.columns)//3)+(len(data_in.columns)%3)
-        #feats = request.POST.getlist('cols')
         col1 = request.POST['xaxis']
         col2 = request.POST['yaxis']
         colorby = request.POST['colorby']
@@ -1578,9 +1408,7 @@ def visual(request):
 
     if 'lineplot' in request.POST and request.method == "POST":
         # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        data_in, columns = visual_default(user_name)
         plt.clf()
         # l=(len(data_in.columns)//3)+(len(data_in.columns)%3)
         # feats=request.POST.getlist('cols')
@@ -1598,9 +1426,9 @@ def visual(request):
     if 'boxplot' in request.POST and request.method == "POST":
         print('Box Plot')
         # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        
+        data_in, columns = visual_default(user_name)
+        
         plt.clf()
         # l=(len(data_in.columns)//3)+(len(data_in.columns)%3)
         # feats=request.POST.getlist('cols')
@@ -1613,15 +1441,11 @@ def visual(request):
         distribution = fig.to_html(full_html=False, default_height=500, default_width=700)
         # distribution=plot()
         columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        # columns=[{'field':f, 'title': f} for f in data_in.columns.to_list()]
-        distribution = {'distribution': distribution, 'columns': columns, 'columns1': columns, 'columns2': columns}
         return render(request, 'visual.html', distribution)
 
     if 'piechart' in request.POST and request.method == "POST":
         # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        data_in, columns = visual_default(user_name)
         plt.clf()
         # l=(len(data_in.columns)//3)+(len(data_in.columns)%3)
         col1 = request.POST['xaxis']
@@ -1633,17 +1457,13 @@ def visual(request):
         fig = px.pie(data_in, values=data_in[col1], names=data_in[col2])
         distribution = fig.to_html(full_html=False, default_height=500, default_width=700)
         # distribution=plot()
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        # columns=[{'field':f, 'title': f} for f in data_in.columns.to_list()]
         distribution = {'distribution': distribution, 'columns': columns, 'columns1': columns, 'columns2': columns}
         return render(request, 'visual.html', distribution)
 
     if 'correlation' in request.POST and request.method == "POST":
         # print('Requests: ',request.POST)
-        temp_file = current_file(user_name)
-        # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
         # feats=request.POST.getlist('cols')
+        data_in, columns = visual_default(user_name)
         col1 = request.POST['xaxis']
         print(col1)
         plt.figure(figsize=(14, 8))
@@ -1660,15 +1480,14 @@ def visual(request):
             fig = px.bar(data_frame=corrs, x=col1,orientation='h',color_continuous_scale='Bluered_r', color=col1, range_color=[-1,1])
             fig.update_layout(autosize=False, width=1000, height=500)
         distribution = fig.to_html(full_html=False, default_height=500, default_width=700)
-        # plt.tight_layout()
-        # distribution=plot()
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+        
         distribution = {'distribution': distribution, 'columns': columns, 'columns1': columns, 'columns2': columns}
         return render(request, 'visual.html', distribution)
     if 'coldescrib' in request.POST and request.method == "POST":
         # print('Requests: ',request.POST)
         # data_in=pd.read_csv(temp_file)
-        data_in = get_current_file(user_name, temp_file)
+        # data_in = get_current_file(user_name, temp_file)
+        data_in, columns = visual_default(user_name)
         feats = request.POST.getlist('cols')
         print(feats)
         plt.figure(figsize=(14, 20))
@@ -1687,21 +1506,23 @@ def visual(request):
         des['Missing Observations'] = data_in[feats[0]].isna().sum()
         des = pd.DataFrame(des).T
         data_described = des.to_html(index=False)
-        columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
         distribution = {'data_described': data_described, 'distribution': distribution, 'columns': columns}
         return render(request, 'visual.html', distribution)
 
     else:
         temp_file = current_file(user_name)
         transform = get_current_display_file(user_name, temp_file)
-        # transform=pd.read_csv(temp_file)
         columns = [{'field': f, 'title': transform[f].dtypes} for f in transform.columns.to_list()]
         transform_data = {
-            'columns1': columns, 'columns2': columns,
-            'transform_data': transform.to_html(index=False, index_names=False)
+            'columns1': columns, 'columns2': columns
         }
         return render(request, "visual.html", transform_data)
-
+def visual_default(user_name):
+    temp_file = current_file(user_name)
+    # transform = get_current_display_file(user_name, temp_file)
+    data_in = get_current_file(user_name, temp_file)
+    columns = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
+    return data_in, columns
 
 def modelling(request):
     user_name = request.session['user_id']
@@ -1738,8 +1559,7 @@ def modelling(request):
         target_selected = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
 
         print(target)
-        #transform_data = pd.DataFrame({'Correlation': data_in.corr()[target]})
-        #transform_data = transform_data.rename_axis('Columns').reset_index(inplace=False)
+        
         no_features = data_in.shape[1] - 1
         transform_data = {
             #'transform_data': transform_data.to_html(index=False, index_names=False),
@@ -1873,10 +1693,6 @@ def modelling(request):
         y_train = data_in[target]
         columns = [{'field': f, 'title': X_train[f].dtypes} for f in X_train.columns.to_list()]
         target_selected = [{'field': f, 'title': data_in[f].dtypes} for f in data_in.columns.to_list()]
-        r'''
-        transform_data = pd.DataFrame({'Correlation': data_in.corr()[target]})
-        transform_data = transform_data.rename_axis('Columns').reset_index(inplace=False)
-        '''
         no_features = data_in.shape[1] - 1
         transform_data = {
             # 'transform_data': transform_data.to_html(index=False, index_names=False)
