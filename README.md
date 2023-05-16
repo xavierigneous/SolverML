@@ -14,4 +14,3 @@ Capabilities:
 7. Hyperparameter Tuning
 8. Model Interpretation
 9. Prediction and Deployment Suite
-![image](https://github.com/xavierigneous/SolverML/assets/16731518/46e4bcc1-9e13-4ddd-aa59-ff8c44a7e416)
