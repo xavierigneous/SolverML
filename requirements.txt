@@ -8,8 +8,8 @@ eli5==0.13.0
 graphviz==0.20.1
 imbalanced_learn==0.10.1
 imblearn==0.0
-ipython==8.13.2
-joblib==1.2.0
+ipython
+joblib
 lime==0.2.0.1
 matplotlib==3.7.1
 numpy==1.23.5
