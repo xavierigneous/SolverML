@@ -197,7 +197,7 @@ function data_section_toggle() {
   {% endfor %}
   <td><input type="radio" class='premodel' value='{{rows.Model}}' name="premodel" {% if rows.Model == best_models %} checked {% endif %};></input></td>
   {% if rows.Model == best_models %}
-    <td><img src="https://cdn2.iconfinder.com/data/icons/modifiers-add-on-1-flat/48/Mod_Add-On_1-34-512.png" style="width:30px;height:30px;"></img></td>
+    <td><img src="/static/icons/icons8-trophy.gif" style="width:30px;height:30px;"></img></td>
   {% endif %}
   </tr>
 {% endfor %}
@@ -212,7 +212,7 @@ function data_section_toggle() {
 <button onclick="data_section_toggle()" class="w3-button w3-deep-purple w3-xlarge w3-hover-yellow">Data Section</button>
 <div id="container">
 <div id="data_section" style="display: none;">
-  <img src="https://visualpharm.com/assets/894/Microsoft Excel-595b40b75ba036ed117d86b9.svg" style="width:100px;height:100px;">
+  <img src="/static/icons/excel.png" style="width:100px;height:100px;">
   <form method="POST" enctype='multipart/form-data'  id='csv_upload'>
     {% csrf_token %}
        
@@ -263,7 +263,7 @@ function data_section_toggle() {
 <br>
     <style type="text/css">
     .sql_upload_enable {
-    background: url("https://img.favpng.com/7/5/11/postgresql-logo-computer-software-database-png-favpng-VzwjvpxaDys6FnN0apYZJbGV7.jpg") no-repeat center center;
+    background: url("/static/icons/584815fdcef1014c0b5e497a.png") no-repeat center center;
     background-size: contain;
     top: 100;
     right: 100px;
@@ -272,7 +272,7 @@ function data_section_toggle() {
     }
 
     .dugme1 {
-    background: url("https://amritfoundationofindia.in/wp-content/uploads/2018/08/download-logo-300x300.png") no-repeat center center;
+    background: url("/static/icons/icons8-download.gif") no-repeat center center;
     background-size: contain;
     top: 50;
     right: 50px;

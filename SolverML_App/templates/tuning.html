@@ -208,9 +208,18 @@
         {% endfor %}
       </label>
       </p>
-  <button type='submit' class="choose_model" name="choose_model">Tune</button>
+  <button type='submit' class="tune_model" title='Start Tuning' name="choose_model"></button>
 </form>
-
+<style type="text/css">
+  .tune_model {
+  background: url("/static/icons/icons8-tune.gif") no-repeat center center;
+  background-size: contain;
+  top: 50;
+    right: 50px;
+    width: 60px;
+    height: 60px;
+  }
+</style>
 <tbody>
 <table class="table table-dark table-striped">
   <style>.dataframe th{

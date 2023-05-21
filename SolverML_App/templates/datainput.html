@@ -238,10 +238,10 @@ h6:first-line{
         {% endfor %}
         </p>
 </tbody>
-<button type="submit" name="merge"  class = "waves-effect waves-light btn" style = "background-color: #F2C069" >Merge</button>
+<button type="submit" name="merge" title="Merge"  class = "w3-bar-item w3-button w3-hover-red, merge_button" ></button>
 <style type="text/css">
   .csv_upload_enable {
-    background: url("https://visualpharm.com/assets/894/Microsoft Excel-595b40b75ba036ed117d86b9.svg") no-repeat center center;
+    background: url("/static/icons/excel.png") no-repeat center center;
     background-size: contain;
     top: 200;
     right: 200px;
@@ -249,7 +249,7 @@ h6:first-line{
     height: 120px;
     }
 .url_upload_enable {
-    background: url("https://www.kindpng.com/picc/m/20-204238_internet-icon-internet-access-web-browser-icono-de.png") no-repeat center center;
+    background: url("/static/icons/Website-595b40b75ba036ed117d8c0c.svg") no-repeat center center;
     background-size: contain;
     top: 200;
     right: 200px;
@@ -257,7 +257,7 @@ h6:first-line{
     height: 120px;
     }
   .sql_upload_enable {
-    background: url("https://w7.pngwing.com/pngs/559/367/png-transparent-postgresql-object-relational-database-oracle-database-freebsd-icon-text-logo-head.png") no-repeat center center;
+    background: url("/static/icons/584815fdcef1014c0b5e497a.png") no-repeat center center;
     background-size: contain;
     top: 200;
     right: 200px;
@@ -265,7 +265,15 @@ h6:first-line{
     height: 120px;
     }
     .delete_button {
-    background: url("https://cdn3.iconfinder.com/data/icons/social-messaging-ui-color-line/254000/82-512.png") no-repeat center center;
+    background: url("/static/icons/bin.png") no-repeat center center;
+    background-size: contain;
+    top: 50;
+    right: 50px;
+    width: 60px;
+    height: 60px;
+    }
+    .merge_button {
+    background: url("/static/icons/merge.png") no-repeat center center;
     background-size: contain;
     top: 50;
     right: 50px;
@@ -273,8 +281,7 @@ h6:first-line{
     height: 60px;
     }
   </style>
-<button type="submit" name="delete"  class = "delete_button"></button>
-
+<button type="submit" name="delete" title="Delete" class = "w3-bar-item w3-button w3-hover-red, delete_button"></button>
 
 <p>
 
@@ -303,7 +310,7 @@ h6:first-line{
   </select>
 <style type="text/css">
     .dugme4 {
-    background: url("https://visualpharm.com/assets/971/Data Recovery-595b40b65ba036ed117d2b88.svg") no-repeat center center;
+    background: url("/static/icons/icons8-submit-document-64.png") no-repeat center center;
     background-size: contain;
     top: 70;
     right: 70px;
@@ -312,7 +319,7 @@ h6:first-line{
     }
   </style>
   <p>
-  <button type="submit" name="merge_sub"id="merge_sub" class = "dugme4" value='Submit'></button>Submit
+  <button type="submit" name="merge_sub"id="merge_sub" title='Submit' class = "w3-bar-item w3-button w3-hover-red, dugme4" value='Submit'></button>
 </div>
 </p>
 </form>
