@@ -73,22 +73,23 @@ WSGI_APPLICATION = 'SolverML.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-# r'''
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': 'vishwanathkannan-3059.postgres.pythonanywhere-services.com',
+        'PORT': 13059,
+        'NAME': 'analytics',
+        'USER': 'super',
+        'PASSWORD': 'Vish&1234'
+    }
+}
+
+r'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-r'''
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'care_aiml_dev',
-        'USER': 'care_aiml_dev',
-        'PASSWORD': 'care_aiml_dev',
-        'HOST': '101.53.158.207',
-        'PORT': '5432'
     }
 }
 

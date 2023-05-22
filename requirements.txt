@@ -1,6 +1,6 @@
 autofeat==2.0.10
 compress_pickle==2.1.0
-dask_ml==2022.5.27
+# dask_ml==2022.5.27
 distributed==2021.10.0
 dj_database_url==0.5.0
 Django==4.2
