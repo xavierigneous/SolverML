@@ -93,7 +93,7 @@ reg_cross_valid=['Kfold','Shuffle Split']
 # Create your views here.
 global nrows, temp_file, user_name
 temp_dir = os.path.join(os.getcwd(), 'temp_data')
-print(temp_dir)
+print('SolverML is up')
 import getpass
 # user_name = getpass.getuser()
 # print('Welcome, ', user_name)

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +26,7 @@ SECRET_KEY = '0p2m+r7+h2c_hipu)s*$z(!l50^=3j%@2!$e9brh8%ar58jyq3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = ['127.0.0.1', '.herokuapp.com/','mlgui-care.herokuapp.com']
+#ALLOWED_HOSTS = ['127.0.0.1']
 ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -73,19 +74,21 @@ WSGI_APPLICATION = 'SolverML.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
+# r'''
+from sshtunnel import SSHTunnelForwarder
+r'''
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'HOST': 'vishwanathkannan-3059.postgres.pythonanywhere-services.com',
-        'PORT': 13059,
-        'NAME': 'analytics',
-        'USER': 'super',
-        'PASSWORD': 'Vish&1234'
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': 'localhost',
+        'PORT': 5432,
+        'NAME': 'analytics1',
+        'USER': 'postgres',
+        'PASSWORD': 'vish2303'
     }
 }
 
-r'''
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -93,36 +96,47 @@ DATABASES = {
     }
 }
 
-from sshtunnel import SSHTunnelForwarder
-
-# Connect to a server using the ssh keys. See the sshtunnel documentation for using password authentication
-ssh_tunnel = SSHTunnelForwarder(
-    'ssh.pythonanywhere.com',
-    #ssh_private_key=PATH_TO_SSH_PRIVATE_KEY,
-    ssh_private_key_password='9j?k%ud#j@5r!Dk',
-    ssh_username='vishwanathkannan',
-    remote_bind_address=('vishwanathkannan-3059.postgres.pythonanywhere-services.com', 13059),
-)
-ssh_tunnel.start()
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'HOST': 'vishwanathkannan-3059.postgres.pythonanywhere-services.com',
-        'PORT': 13059,
-        'NAME': 'postgres',
-        'USER': 'super',
-        'PASSWORD': 'Vish&1234',
-    },
+,
     'shhtunnel_db': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'django.db.backends.postgresql',
         'HOST': 'localhost',
         'PORT': ssh_tunnel.local_bind_port,
         #'NAME': REMOTE_DB_DB_NAME,
         'USER': 'vishwanathkannan',
         'PASSWORD': '9j?k%ud#j@5r!Dk',
     },
-}
+
+# Connect to a server using the ssh keys. See the sshtunnel documentation for using password authentication
 r'''
+# SSH credentials
+ssh_host = 'ssh.pythonanywhere.com'
+ssh_user = 'vishwanathkannan'
+ssh_password = '9j?k%ud#j@5r!Dk'
+port = 13059
+# Database credentials
+db_host = 'vishwanathkannan-3059.postgres.pythonanywhere-services.com'
+db_user = 'super'
+db_password = 'Vish&1234'
+db_name = 'analytics'
+# SSH tunnel configuration
+tunnel = SSHTunnelForwarder(
+        (ssh_host, 22),
+        ssh_username=ssh_user,
+        ssh_password=ssh_password,
+        remote_bind_address=(db_host, port),
+        local_bind_address=('localhost', port)
+)
+tunnel.start()
+DATABASES = {
+    'default': dj_database_url.config(
+        default=f'postgresql://{db_user}:{db_password}@localhost:{tunnel.local_bind_port}/{db_name}',
+        conn_max_age=600    
+    )
+}
+        
+        
+# r'''
+
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
@@ -167,9 +181,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
-print(STATICFILES_DIRS)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-import dj_database_url 
-prod_db  =  dj_database_url.config(conn_max_age=500)
-DATABASES['default'].update(prod_db)
+# import dj_database_url 
+# prod_db  =  dj_database_url.config(conn_max_age=500)
+# DATABASES['default'].update(prod_db)
+# DATABASES['default'] =  dj_database_url.config()
