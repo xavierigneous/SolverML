@@ -1,0 +1,1 @@
+web: gunicorn SolverML.wsgi --log-file -
