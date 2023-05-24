@@ -21,15 +21,16 @@ db_name = 'analytics'
 
 def sql_engine():
     
-    tunnel = SSHTunnelForwarder(
-        (ssh_host),
-        ssh_username=ssh_user,
-        ssh_password=ssh_password,
-        remote_bind_address=(db_host, port),
-        local_bind_address=('localhost', port)
-        ) 
-    tunnel.start()
-    sql_engine = sqlalchemy.create_engine(f'postgresql://{db_user}:{db_password}@localhost:{tunnel.local_bind_port}/{db_name}')
+    # tunnel = SSHTunnelForwarder(
+    #     (ssh_host),
+    #     ssh_username=ssh_user,
+    #     ssh_password=ssh_password,
+    #     remote_bind_address=(db_host, port),
+    #     local_bind_address=('localhost', port)
+    #     ) 
+    # tunnel.start()
+    # sql_engine = sqlalchemy.create_engine(f'postgresql://{db_user}:{db_password}@localhost:{tunnel.local_bind_port}/{db_name}')
+    sql_engine = sqlalchemy.create_engine('postgresql://postgres:o2bVJ4hl6dtwI9IyKepf@containers-us-west-54.railway.app:6560/railway')
     return sql_engine
 
 

@@ -26,10 +26,11 @@ SECRET_KEY = '0p2m+r7+h2c_hipu)s*$z(!l50^=3j%@2!$e9brh8%ar58jyq3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = ['127.0.0.1']
-ALLOWED_HOSTS = ['*', 'https://*.railway.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'https://*.railway.app']
+# ALLOWED_HOSTS = ['*', 'https://*.railway.app']
 
-CSRF_TRUSTED_ORIGINS = ['*', 'https://*.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1', 'https://*.railway.app']
+# CSRF_TRUSTED_ORIGINS = ['*', 'https://*.railway.app']
 
 # Application definition
 
@@ -79,19 +80,19 @@ WSGI_APPLICATION = 'SolverML.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 # r'''
 from sshtunnel import SSHTunnelForwarder
-r'''
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': 'localhost',
-        'PORT': 5432,
-        'NAME': 'analytics1',
+        'HOST': 'containers-us-west-54.railway.app',
+        'PORT': 6560,
+        'NAME': 'railway',
         'USER': 'postgres',
-        'PASSWORD': 'vish2303'
+        'PASSWORD': 'o2bVJ4hl6dtwI9IyKepf'
     }
 }
 
-
+r'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -110,7 +111,7 @@ DATABASES = {
     },
 
 # Connect to a server using the ssh keys. See the sshtunnel documentation for using password authentication
-r'''
+
 # SSH credentials
 ssh_host = 'ssh.pythonanywhere.com'
 ssh_user = 'vishwanathkannan'
