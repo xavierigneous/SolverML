@@ -3,12 +3,33 @@ import pandas.io.sql as psql
 import numpy as np
 import sqlalchemy
 import os, pickle, compress_pickle, sys
+from sshtunnel import SSHTunnelForwarder
 import time
 
 temp_dir = os.path.join(os.getcwd(), 'temp_data')
 
+# SSH credentials
+ssh_host = 'ssh.pythonanywhere.com'
+ssh_user = 'vishwanathkannan'
+ssh_password = '9j?k%ud#j@5r!Dk'
+port = 13059
+# Database credentials
+db_host = 'vishwanathkannan-3059.postgres.pythonanywhere-services.com'
+db_user = 'super'
+db_password = 'Vish&1234'
+db_name = 'analytics'
+
 def sql_engine():
-    sql_engine = sqlalchemy.create_engine('postgresql://postgres:vish2303@localhost:5432/analytics1')
+    
+    tunnel = SSHTunnelForwarder(
+        (ssh_host),
+        ssh_username=ssh_user,
+        ssh_password=ssh_password,
+        remote_bind_address=(db_host, port),
+        local_bind_address=('localhost', port)
+        ) 
+    tunnel.start()
+    sql_engine = sqlalchemy.create_engine(f'postgresql://{db_user}:{db_password}@localhost:{tunnel.local_bind_port}/{db_name}')
     return sql_engine
 
 
