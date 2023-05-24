@@ -25,4 +25,5 @@ shap==0.41.0
 SQLAlchemy==1.4.22
 sshtunnel==0.4.0
 statsmodels==0.13.5
+whitenoise>=6.4
 xgboost==1.7.4
