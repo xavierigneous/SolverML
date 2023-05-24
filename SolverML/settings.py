@@ -29,7 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'https://*.railway.app']
 # ALLOWED_HOSTS = ['*', 'https://*.railway.app']
 
-CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1', 'https://*.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1', 'https://solverml-production-9400.up.railway.app']
 # CSRF_TRUSTED_ORIGINS = ['*', 'https://*.railway.app']
 
 # Application definition
@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'SolverML.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 # r'''
-from sshtunnel import SSHTunnelForwarder
+
 
 DATABASES = {
     'default': {
@@ -93,23 +93,7 @@ DATABASES = {
 }
 
 r'''
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-,
-    'shhtunnel_db': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'HOST': 'localhost',
-        'PORT': ssh_tunnel.local_bind_port,
-        #'NAME': REMOTE_DB_DB_NAME,
-        'USER': 'vishwanathkannan',
-        'PASSWORD': '9j?k%ud#j@5r!Dk',
-    },
-
+from sshtunnel import SSHTunnelForwarder
 # Connect to a server using the ssh keys. See the sshtunnel documentation for using password authentication
 
 # SSH credentials
