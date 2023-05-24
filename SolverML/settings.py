@@ -27,7 +27,9 @@ SECRET_KEY = '0p2m+r7+h2c_hipu)s*$z(!l50^=3j%@2!$e9brh8%ar58jyq3'
 DEBUG = True
 
 #ALLOWED_HOSTS = ['127.0.0.1']
-ALLOWED_HOSTS = ['*', 'https://solverml-production-7c72.up.railway.app']
+ALLOWED_HOSTS = ['*', 'https://*.railway.app']
+
+CSRF_TRUSTED_ORIGINS = ['*', 'https://*.railway.app']
 
 # Application definition
 
