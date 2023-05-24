@@ -393,6 +393,7 @@ def dataview_context(user_name, temp_file):
 
 def dataview(request):
     user_name = request.session['user_id']
+    temp_file = current_file(user_name)
     project_id, project_name, data_in, columns = dataview_context(user_name, temp_file)
     if 'view' in request.POST and request.method == "POST":
         data_object = {
