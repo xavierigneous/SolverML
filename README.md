@@ -14,3 +14,6 @@ Capabilities:
 7. Hyperparameter Tuning
 8. Model Interpretation
 9. Prediction and Deployment Suite
+
+Give it a try at:
+https://solverml-production-9400.up.railway.app/SolverML/
