@@ -500,7 +500,7 @@ def transform(request):
             le = preprocessing.LabelEncoder()
             d = defaultdict(preprocessing.LabelEncoder)
             # data_in.loc[:, feats] = data_in.loc[:, feats].apply(lambda x: d[x.name].fit_transform(x))
-            # store_temp_operation(d,feats)
+            # store_temp_operation(user_name, d,feats)
             op = d.default_factory.__name__
             key = [op + '_' + x for x in feats if not str(x) == "nan"]
             print(key)
@@ -514,14 +514,12 @@ def transform(request):
                 print(temp)
                 print(pd.concat([data_in, temp], axis=1))
                 temp = pd.concat([data_in, temp], axis=1)
-                store_temp_operation(d, feats)
+                store_temp_operation(user_name, d, feats)
             else:
                 messages.error(request, 'Operation Already Performed')
                 print('Operation already performed')
                 temp = data_in.copy()
 
-
-            
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
             'columns':temp.columns.values,
@@ -542,7 +540,7 @@ def transform(request):
             print(temp)
             print(pd.concat([data_in, temp], axis=1))
             temp = pd.concat([data_in, temp], axis=1)
-            store_temp_operation(onehotencode, feats)
+            store_temp_operation(user_name, onehotencode, feats)
             
             transform_data = {
                 'transform_data': temp.head(20).to_dict(orient='records'),
@@ -576,7 +574,7 @@ def transform(request):
                     temp = temp.loc[:, :].add_suffix(op)
                     print(temp)
                     #print(pd.concat([data_in, temp], axis=1))
-                    store_temp_operation(log_transform_pipeline, feats)
+                    store_temp_operation(user_name, log_transform_pipeline, feats)
                     temp = pd.concat([data_in, temp], axis=1)
                 else:
                     messages.error(request, 'Operation Already Performed')
@@ -618,7 +616,7 @@ def transform(request):
                     temp.loc[:, :] = log_transform_pipeline.fit_transform(temp)
                     temp = temp.loc[:, :].add_suffix(op)
                     print(temp)
-                    store_temp_operation(log_transform_pipeline, feats)
+                    store_temp_operation(user_name, log_transform_pipeline, feats)
                     temp = pd.concat([data_in, temp], axis=1)
                 else:
                     messages.error(request, 'Operation Already Performed')
@@ -662,7 +660,7 @@ def transform(request):
                     temp = temp.loc[:, :].add_suffix(op)
                     print(temp)
                     #print(pd.concat([data_in, temp], axis=1))
-                    store_temp_operation(log_transform_pipeline, feats)
+                    store_temp_operation(user_name, log_transform_pipeline, feats)
                     temp = pd.concat([data_in, temp], axis=1)
                 else:
                     messages.error(request, 'Operation Already Performed')
@@ -694,7 +692,7 @@ def transform(request):
             print('Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
             messages.success(request, 'Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
             data_in=data_in.dropna(subset=feats,axis=0)
-            store_temp_operation(remove_outliers_pipeline, feats)
+            store_temp_operation(user_name, remove_outliers_pipeline, feats)
             plt.clf()
             #sns.boxplot(data_in[feats])  # , ax=ax)
             data_in.boxplot(column=feats)
@@ -723,7 +721,7 @@ def transform(request):
 
             data_in[feats]=see_outliers.fit_transform(data_in[feats])
             print('Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
-            store_temp_operation(remove_outliers, feats)
+            store_temp_operation(user_name, remove_outliers, feats)
             plt.clf()
             #sns.boxplot(data_in[feats])  # , ax=ax)
             data_in.boxplot(column=feats)
@@ -752,7 +750,7 @@ def transform(request):
 
             data_in[feats]=see_outliers.fit_transform(data_in[feats])
             print('Outliers: {0:0.1f} %'.format((data_in[data_in[feats].isna().any(axis=1)].shape[0]/data_in.shape[0])*100))
-            store_temp_operation(see_outliers_pipeline, feats)
+            store_temp_operation(user_name, see_outliers_pipeline, feats)
             plt.clf()
             
             data_in.boxplot(column=feats)
@@ -787,7 +785,7 @@ def transform(request):
             temp = temp.loc[:, :].add_suffix(op)
             temp = pd.concat([data_in, temp], axis=1)
             print('Final Concat: ',temp)
-            store_temp_operation(int_transform_pipeline, feats)
+            store_temp_operation(user_name, int_transform_pipeline, feats)
             print(temp.loc[:, feats])
 
             transform_data = {
@@ -818,7 +816,7 @@ def transform(request):
             temp = temp.loc[:, :].add_suffix(op)
             temp = pd.concat([data_in, temp], axis=1)
             print('Final Concat: ',temp)
-            store_temp_operation(float_transform_pipeline, feats)
+            store_temp_operation(user_name, float_transform_pipeline, feats)
             print(temp.loc[:, feats])
 
             transform_data = {
@@ -845,7 +843,7 @@ def transform(request):
             temp = temp.loc[:, :].add_suffix(op)
             temp = pd.concat([data_in, temp], axis=1)
             print('Final Concat: ',temp)
-            store_temp_operation(int_transform_pipeline, feats)
+            store_temp_operation(user_name, int_transform_pipeline, feats)
             print(temp.loc[:, feats])
 
             
@@ -879,7 +877,7 @@ def transform(request):
                 temp = temp.loc[:, :].add_suffix(op)
                 temp = pd.concat([data_in, temp], axis=1)
                 print('Final Concat: ',temp)
-                store_temp_operation(impute_pipeline, feats)    
+                store_temp_operation(user_name, impute_pipeline, feats)    
             else:
                 messages.error(request, 'Operation Already Performed')
                 print('Operation already performed')
@@ -912,7 +910,7 @@ def transform(request):
                     temp = temp.loc[:, :].add_suffix(op)
                     temp = pd.concat([data_in, temp], axis=1)
                     print('Final Concat: ',temp)
-                    store_temp_operation(impute_pipeline, feats)    
+                    store_temp_operation(user_name, impute_pipeline, feats)    
                 else:
                     messages.error(request, 'Operation Already Performed')
                     print('Operation already performed')
@@ -951,7 +949,7 @@ def transform(request):
                     temp = temp.loc[:, :].add_suffix(op)
                     temp = pd.concat([data_in, temp], axis=1)
                     print('Final Concat: ',temp)
-                    store_temp_operation(impute_pipeline, feats)
+                    store_temp_operation(user_name, impute_pipeline, feats)
                 else:
                     messages.error(request, 'Operation Already Performed')
                     print('Operation already performed')
@@ -959,7 +957,7 @@ def transform(request):
             except:
                 print('Not happening')
                 messages.error(request, 'Mode Impute Unsuccessful')
-            # store_temp_operation(impute_pipeline, feats)
+            # store_temp_operation(user_name, impute_pipeline, feats)
             print(temp.loc[:, feats])
 
             
@@ -979,7 +977,7 @@ def transform(request):
             zero_impute_pipeline = ColumnTransformer([
                 ('_zero_imputed', Pipeline([('zero_impute', zero_imp)]), feats)])
             data_in.loc[:, feats] = zero_impute_pipeline.fit_transform(data_in.loc[:, feats])
-            store_temp_operation(zero_impute_pipeline, feats)
+            store_temp_operation(user_name, zero_impute_pipeline, feats)
             print(data_in.loc[:, feats])
             
             transform_data = {
@@ -1001,7 +999,7 @@ def transform(request):
             ('_symbol_removed', Pipeline([('symbol_removal', symbol_removal)]), feats)])
         print(symbol_removal)
         data_in.loc[:, feats] = symbol_removal_pipeline.fit_transform(data_in.loc[:, feats])
-        store_temp_operation(symbol_removal_pipeline, feats)
+        store_temp_operation(user_name, symbol_removal_pipeline, feats)
         update_train_file(temp_file, data_in)
         
         transform_data = {
@@ -1039,7 +1037,7 @@ def transform(request):
         temporary_data=data_in.loc[:,feats]
         temporary(user_name, temporary_data)
         data_in=drop_columns(data_in,feats)
-        store_temp_operation(drop_columns, feats)
+        store_temp_operation(user_name, drop_columns, feats)
         operations = use_operation(user_name)
         temp_operations = retrieve_temp_operation(user_name).reset_index(drop=True)
         print(temp_operations)

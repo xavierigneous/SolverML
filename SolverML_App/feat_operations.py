@@ -2,6 +2,7 @@ import pandas as pd
 import pandas.io.sql as psql
 import numpy as np
 import os, time
+import pickle, compress_pickle
 from sklearn.exceptions import NotFittedError
 import scipy.stats as stats
 
@@ -63,7 +64,8 @@ def reverse_one_hot(df, cols):
     return df
 
 
-def store_temp_operation(operation, cols):
+def store_temp_operation(user_name, operation, cols):
+    project_id = get_current_project(user_name)
     feat_engine = pd.DataFrame(index=range(0), columns=['Operation', 'Column', 'Key'])
     print(type(operation).__name__)
     if type(operation).__name__=='ColumnTransformer':
@@ -86,7 +88,9 @@ def store_temp_operation(operation, cols):
 
     
     print(feat_engine)
-    feat_engine.to_pickle(os.path.join(temp_dir, 'temp_operations.pkl'))
+    # feat_engine.to_pickle(os.path.join(temp_dir, 'temp_operations.pkl'))
+    operations=pickle.dumps(feat_engine)
+    sql_engine().execute("UPDATE public.train_data SET temp_operations= %s where user_name=%s AND project_id=%s AND use_file='Yes'",operations,user_name,project_id)
 
 
 def apply_operations(test_data, feat_engine):
