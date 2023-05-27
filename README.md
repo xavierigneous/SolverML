@@ -17,3 +17,6 @@ Capabilities:
 
 Give it a try at:
 https://solverml-production-9400.up.railway.app/SolverML/
+
+Good News! You can register to use SolverML by filling this form.
+https://forms.gle/y3K513yPDGuKRX8g6
