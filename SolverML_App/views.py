@@ -158,13 +158,14 @@ def home(request):
         except:
             project_id = 1
         upload_projects(project_id, project_name, problem_type, user_name)
-        projects = home_context(user_name)
-        return render(request, 'homepage.html', {'projects': projects})
+        # projects = home_context(user_name)
+        # return render(request, 'homepage.html', {'projects': projects})
+        return redirect('datainput')
     if 'select_project' in request.POST and request.method == "POST":
         print('Project ID: ', request.POST.get('select_project'))
         project_id = request.POST.get('select_project')
         update_projects(project_id, user_name)
-        projects = home_context(user_name)
+        # projects = home_context(user_name)
         return redirect('datainput')
         # return render(request, 'homepage.html', {'projects': projects})
 
@@ -197,6 +198,11 @@ def datainput(request):
             df = file_type.get(file_name.split('.')[-1])(x, na_values=' ')
             file_upload(user_name, df,project_id,file_name)
 
+            query = f"UPDATE public.train_data SET use_file='No' where user_name='{user_name}' and project_id='{project_id}'".format(user_name,project_id)
+            sql_engine().execute(query)
+            query = f"UPDATE public.train_data SET use_file='Yes' where user_name='{user_name}' and project_id='{project_id}' and file_name='{file_name}'".format(user_name,project_id,file_name)
+            sql_engine().execute(query)
+
         project_id = get_current_project(user_name)
         query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
         project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
@@ -221,6 +227,11 @@ def datainput(request):
             df = pd.read_csv(x, na_values=' ')
             print(df)
             file_upload(user_name, df,project_id,file_name)
+
+            query = f"UPDATE public.train_data SET use_file='No' where user_name='{user_name}' and project_id='{project_id}'".format(user_name,project_id)
+            sql_engine().execute(query)
+            query = f"UPDATE public.train_data SET use_file='Yes' where user_name='{user_name}' and project_id='{project_id}' and file_name='{file_name}'".format(user_name,project_id,file_name)
+            sql_engine().execute(query)
 
         project_id = get_current_project(user_name)
         query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
