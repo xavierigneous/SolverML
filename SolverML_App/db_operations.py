@@ -199,7 +199,6 @@ def current_file(user_name):
     #print(user_name)
     query = f"select file_name from public.train_data where user_name='{user_name}' AND project_id='{project_id}' and use_file='Yes'".format(user_name, project_id)
     data = psql.read_sql_query(query, sql_engine()).reset_index(drop=True)
-    print(data['file_name'])
     # data = sql_engine()(query, return_data=True).reset_index(drop=True)
     print("--- Database Read Time: %s seconds ---" % (time.time() - start_time))
     file_name = data['file_name'][0]
