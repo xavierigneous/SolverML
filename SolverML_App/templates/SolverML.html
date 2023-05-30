@@ -8,7 +8,11 @@
                 <div id="navbar" class="collapse navbar-collapse">
                     <ul class="nav navbar-nav navbar-right">
 						{% if user.is_authenticated %}
-                        	<li><a title="Go to SolverML" href="/homepage">Welcome, {{user.username}}</a></li>
+                        	<li><a title="Go to SolverML" href="/homepage">Welcome, {{user.username}}</a>
+							<form method="POST" enctype='multipart/form-data'>
+								{% csrf_token %}
+							<button type="submit" title="Logout" name="logout" href="/login_page">Logout</button></li>
+							</form>
 						{% else %}
 							<li><a href="/login">Login</a></li>
 							<li><a href="https://forms.gle/y3K513yPDGuKRX8g6">Register</a></li>

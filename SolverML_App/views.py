@@ -99,7 +99,11 @@ import getpass
 # print('Welcome, ', user_name)
 
 def SolverML(request):
-    return render(request, 'SolverML.html')
+    if 'logout' in request.POST and request.method == 'POST':
+            logout(request)
+            return redirect('login_page')
+    else:
+        return render(request, 'SolverML.html')
 
 def login_page(request):
     if 'login' in request.POST and request.method == 'POST':
