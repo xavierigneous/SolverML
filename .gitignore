@@ -1,4 +1,5 @@
-
+db.sqlite3
+.lock
 .ipynb_checkpoints/Untitled1-checkpoint.ipynb
 .ipynb_checkpoints/Untitled2-checkpoint.ipynb
 *.pyc
