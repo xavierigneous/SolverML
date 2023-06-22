@@ -355,15 +355,16 @@ def datainput(request):
         # engine.execute()
         sql_engine().execute(query)
 
-        directory = get_current_directory(user_name)
-        hr = directory['file_name']
-        print('File list:')
-        print(hr)
-        file_lists = [{'field': f, 'title': f} for f in hr]
-        query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
-        project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
-        # project_name=sql_engine(query, return_data=True).reset_index(drop="True")['project_name'][0]
-        return render(request, "datainput.html", {'file_lists': file_lists,'project_name':project_name})
+        # directory = get_current_directory(user_name)
+        # hr = directory['file_name']
+        # print('File list:')
+        # print(hr)
+        # file_lists = [{'field': f, 'title': f} for f in hr]
+        # query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
+        # project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
+        # # project_name=sql_engine(query, return_data=True).reset_index(drop="True")['project_name'][0]
+        # return render(request, "datainput.html", {'file_lists': file_lists,'project_name':project_name})
+        return redirect('dataview')
 
     if 'delete' in request.POST and request.method == "POST":
         # print('Requests: ',request.POST)
