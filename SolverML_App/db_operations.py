@@ -8,29 +8,15 @@ import time
 
 temp_dir = os.path.join(os.getcwd(), 'temp_data')
 
-# SSH credentials
-ssh_host = 'ssh.pythonanywhere.com'
-ssh_user = 'vishwanathkannan'
-ssh_password = '9j?k%ud#j@5r!Dk'
-port = 13059
 # Database credentials
-db_host = 'vishwanathkannan-3059.postgres.pythonanywhere-services.com'
-db_user = 'super'
-db_password = 'Vish&1234'
-db_name = 'analytics'
+db_host = 'containers-us-west-54.railway.app'
+db_user = 'postgres'
+db_password = 'o2bVJ4hl6dtwI9IyKepf'
+db_name = 'railway'
+db_port = '6560'
 
 def sql_engine():
-    
-    # tunnel = SSHTunnelForwarder(
-    #     (ssh_host),
-    #     ssh_username=ssh_user,
-    #     ssh_password=ssh_password,
-    #     remote_bind_address=(db_host, port),
-    #     local_bind_address=('localhost', port)
-    #     ) 
-    # tunnel.start()
-    # sql_engine = sqlalchemy.create_engine(f'postgresql://{db_user}:{db_password}@localhost:{tunnel.local_bind_port}/{db_name}')
-    sql_engine = sqlalchemy.create_engine('postgresql://postgres:o2bVJ4hl6dtwI9IyKepf@containers-us-west-54.railway.app:6560/railway')
+    sql_engine = sqlalchemy.create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
     return sql_engine
 
 

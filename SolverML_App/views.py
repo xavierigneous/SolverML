@@ -260,8 +260,8 @@ def datainput(request):
         print(hostname,port,username,pwd,database,query)
         print(query)
         print('Engine: ')
-        print('postgres://'+username+':'+pwd+'@'+hostname+':'+port+'/'+database)
-        eng=sqlalchemy.create_engine('postgresql://'+username+':'+pwd+'@'+hostname+':'+port+'/'+database)
+        print(f'postgresql://{username}:{pwd}@{hostname}:{port}/{database}')
+        eng=sqlalchemy.create_engine(f'postgresql://{username}:{pwd}@{hostname}:{port}/{database}')
         #engine = sqlalchemy.create_engine('postgresql://analytics:analytics@203.112.158.89:5432/ratings')
         if query=="":
             data = psql.read_sql_table(table,eng)
@@ -355,15 +355,6 @@ def datainput(request):
         # engine.execute()
         sql_engine().execute(query)
 
-        # directory = get_current_directory(user_name)
-        # hr = directory['file_name']
-        # print('File list:')
-        # print(hr)
-        # file_lists = [{'field': f, 'title': f} for f in hr]
-        # query=f"select project_name from public.base_data where user_name='{user_name}' AND project_id='{project_id}'".format(user_name,project_id)
-        # project_name=pd.read_sql_query(query, sql_engine()).reset_index(drop="True")['project_name'][0]
-        # # project_name=sql_engine(query, return_data=True).reset_index(drop="True")['project_name'][0]
-        # return render(request, "datainput.html", {'file_lists': file_lists,'project_name':project_name})
         return redirect('dataview')
 
     if 'delete' in request.POST and request.method == "POST":
@@ -2506,7 +2497,7 @@ def prediction(request):
         query=str(request.POST.get('query'))
         print(hostname,port,username,pwd,database,query)
         print(query)
-        test_engine=sqlalchemy.create_engine('postgresql://'+username+':'+pwd+'@'+hostname+':'+port+'/'+database)
+        test_engine=sqlalchemy.create_engine(f'postgresql://{username}:{pwd}@{hostname}:{port}/{database}')
         if query=="":
             data = psql.read_sql_table(table,test_engine)
         else:
