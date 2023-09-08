@@ -2,6 +2,7 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponse, FileResponse, JsonResponse
 from django.core.files.storage import FileSystemStorage
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from sklearn import preprocessing
 from sklearn.exceptions import NotFittedError
@@ -130,6 +131,33 @@ def login_page(request):
         # No post data availabe, let's just show the page to the user.
         return render(request, 'login.html')
 
+def register_page(request):
+    if 'register' in request.POST and request.method == 'POST':
+        # Process the request if posted data are available
+        email = request.POST['email']
+        username = request.POST['username']
+        password = request.POST['password']
+        password2 = request.POST['password2']
+        # Check username and password combination if correct
+        user = authenticate(username=username, password=password)
+        if password == password2:
+            try:
+                User.objects.get(username = username)
+                return render (request,'accounts/signup.html', {'error':'Username is already taken!'})
+            except User.DoesNotExist:
+                user = User.objects.create_user(username,email, password=password)
+                login(request,user)
+                request.session['user_id'] = user.username
+                return redirect('homepage')
+        elif password != password2:
+            return render(request, 'register.html', {'error_message': "Passwords don't Match. Try again"})
+        else:
+            # Incorrect credentials, let's throw an error to the screen.
+            return render(request, 'register.html', {'error_message': 'Incorrect username and / or password.'})
+    
+    else:
+        # No post data availabe, let's just show the page to the user.
+        return render(request, 'register.html')
 
 def id_generator(lst):
     return sorted(set(range(1, lst[-1])) - set(lst))

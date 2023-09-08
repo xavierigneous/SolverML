@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+    <body style="background-color:rgb(49, 8, 83);"></body>
+<head>
+    <title>SolverML</title>
+   
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <nav class="navbar navbar-inverse" role="navigation">
+            <div class="container">              
+                <div id="navbar" class="collapse navbar-collapse">
+                    
+                    <ul class="nav navbar-nav navbar-left">
+                        <h1 id="logo"><a href="{% url 'SolverML' %}"><img src="/static/favicon/solverml-high-resolution-logo-white-on-transparent-background.png" 
+                            width="100" height="100" alt="logo" /></a></h1>
+                      </ul>
+                </div>
+            </div>
+        </nav>
+
+<body class="override">
+  <div class="container">
+    <form method="post">
+        {% csrf_token %}
+        <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">Register</div>
+                <div class="panel-body">
+                    {% if error_message %}
+                        <p class="bg-danger p-d ml-b">{{ error_message }}</p>
+                    {% endif %}
+                    <div class="form-group clearfix">
+                        <label for="username" class="col-md-4 control-label text-right">Email:</label>
+                        <div class="col-md-6">
+                            <input name="email" value="" type="text" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group clearfix">
+                        <label for="username" class="col-md-4 control-label text-right">Username:</label>
+                        <div class="col-md-6">
+                            <input name="username" value="" type="text" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group clearfix">
+                        <label for="password" class="col-md-4 control-label text-right">Password:</label>
+                        <div class="col-md-6">
+                            <input name="password" type="password" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group clearfix">
+                        <label for="password2" class="col-md-4 control-label text-right"> Retype Password:</label>
+                        <div class="col-md-6">
+                            <input name="password2" type="password" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-md-offset-4">
+                        <input name="register" type="submit" value="Register" class="btn btn-success" /> &nbsp;
+                    </div>
+
+                    <br><br><br>
+                    Also, I request you to fill this Google Form to better understand you and your expectations from this platform.
+                    <div class="col-md-6 col-md-offset-4">
+                        <style type="text/css">
+                          .google_form {
+                            background: url("/static/icons/Google_Forms_logo_(2014-2020).svg") no-repeat center center;
+                            background-size: contain;
+                            top: 200;
+                            right: 200px;
+                            width: 120px;
+                            height: 120px;
+                            }</style>
+                        <a class = 'csv_upload_enable' href="https://forms.gle/y3K513yPDGuKRX8g6">Google Form<img src="/static/icons/google-forms" /></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+  </div>
+</body>
