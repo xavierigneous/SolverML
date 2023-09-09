@@ -157,7 +157,7 @@ h6:first-line{
 <button type="submit" name="graph_view" class="w3-bar-item w3-button w3-border-bottom w3-hover-blue" style = "background-color: #82E0AA">Graph View</button>
 </tbody>
 {% csrf_token %}
-<select name="columns" id="columns">
+<select name="columns" id="columns" required>
      <option></option>
       {% for col in columns %}
         <option class="columns" name="columns" onChange="form.submit();" value="{{ col.field | safe }}" {% if col.selected %} selected {% endif %}>{{ col.field | safe }}</option>

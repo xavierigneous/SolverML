@@ -166,7 +166,7 @@ document.getElementById("openNav").style.display = "inline-block";
 
 {% for rows in transform_data %}
   <tr>
-  <td><input type="radio" class='premodel' value='{{rows.Model}}' name="premodel"></input></td>
+  <td><input type="radio" class='premodel' value='{{rows.Model}}' name="premodel" required></input></td>
   {% for i,j in rows.items %}
       <td>{{ j }}</td>
   {% endfor %}

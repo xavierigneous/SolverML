@@ -147,7 +147,7 @@ document.getElementById("openNav").style.display = "inline-block";
 {% for col in model_list %}
       <p>
         <label>
-        <input type="radio" class="premodel" name="premodel" value="{{ col.field }}" style = "font-size:8;"></input>
+        <input type="radio" class="premodel" name="premodel" value="{{ col.field }}" style = "font-size:8;" required></input>
         <a style="color: white;">{{ col.title |safe}}</a> 
         {% endfor %}
         </label>

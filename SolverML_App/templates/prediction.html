@@ -194,7 +194,7 @@ function data_section_toggle() {
   {% for i,j in rows.items %}
       <td {% if j == best_models %} yes {% endif %}>{{ j }}</td>
   {% endfor %}
-  <td><input type="radio" class='premodel' value='{{rows.Model}}' name="premodel" {% if rows.Model == best_models %} checked {% endif %};></input></td>
+  <td><input type="radio" class='premodel' value='{{rows.Model}}' name="premodel" {% if rows.Model == best_models %} checked {% endif %}; required></input></td>
   {% if rows.Model == best_models %}
     <td><img src="/static/icons/icons8-trophy.gif" style="width:30px;height:30px;"></img></td>
   {% endif %}
