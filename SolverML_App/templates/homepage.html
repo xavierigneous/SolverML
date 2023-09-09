@@ -12,123 +12,6 @@
 </ul>
 </head>
 
-<!-- 
-<body>
-  <style type="text/css">
-  .navbar {
-  overflow: hidden;
-  background-color: #6A8DF4;
-  color: white;
-
-  font-family: Arial, Helvetica, sans-serif;
-}
-.navbar a {
-  float: right;
-  font-size: 16px;
-  color: white;
-  background-color: rgb(49, 8, 83);
-  border:1px solid white;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-}
-
-.dropdown {
-  float: left;
-  overflow: hidden;
-}
-.active {
-  background-color: #4CAF50;
-  color: white;
-}
-.dropdown .dropbtn {
-  font-size: 16px;  
-  border: none;
-  outline: none;
-  color: white;
-  padding: 14px 16px;
-  background-color: inherit;
-  font-family: inherit;
-  margin: 0;
-}
-
-.navbar a:hover, .dropdown:hover .dropbtn {
-  background-color: red;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f9f9f9;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
-}
-
-.dropdown-content a {
-  float: none;
-  color: gray;
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-  text-align: left;
-}
-
-.dropdown-content a:hover {
-  background-color: #ddd;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-}
- 
-  </style>
-</body>
-  <script>
-    function w3_open() {
-      // document.getElementById("new_project").style.marginLeft = "10%";
-  document.getElementById("mySidebar").style.width = "10%";
-  document.getElementById("mySidebar").style.display = "block";
-  document.getElementById("openNav").style.display = 'none';
-}
-function w3_close() {
-  // document.getElementById("new_project").style.marginLeft = "0%";
-  document.getElementById("mySidebar").style.display = "none";
-  document.getElementById("openNav").style.display = "inline-block";
-}
-</script>
-<body>
- <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
- <meta name="viewport" content="width=device-width, initial-scale=1">
- <div class="w3">
-  <button id="openNav" class="w3-button w3-deep-purple w3-xlarge" onclick="w3_open()">&#9776;</button>
-</div>
-<div class="w3-sidebar w3-bar-block w3-deep-purple w3-animate-left" id="mySidebar" style="display:none">
-  <button class="w3-bar-item w3-button w3-large w3-animate-right w3-border-bottom"onclick="w3_close()">Close &times;</button>
-<a href="{% url 'homepage' %}" name='homepage' class="w3-bar-item w3-button w3-border-bottom">Home</a>
-<div class="w3-dropdown-hover">
-  <a class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data</a>
-  <div class="w3-dropdown-content w3-green w3-bar-block">
-    <a href="{% url 'datainput' %}" name='datainput' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data Input</a>
-    <a href="{% url 'dataview' %}" name='dataview' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Data View</a>
-  </div>
-</div>
-<a href="{% url 'transform' %}"name="transform" class="w3-bar-item w3-button w3-border-bottom">Transform</a>
-<a href="{% url 'visual' %}" name="visual" class="w3-bar-item w3-button w3-border-bottom">EDA</a>
-<div class="w3-dropdown-hover">
-  <a class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Model</a>
-  <div class="w3-dropdown-content w3-green w3-bar-block">
-    <a href="{% url 'modelling' %}" name='modelling' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Modelling</a>
-    <a href="{% url 'model_fit' %}" name='model_fit' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Model Fit</a>
-    <a href="{% url 'metrics_view' %}" name='metrics_view' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Metrics View</a>
-    <a href="{% url 'tuning' %}" name='tuning' class="w3-bar-item w3-button w3-border-bottom w3-hover-red">Hyperparameter Tuning</a>
-  </div>
-</div>
-<a href="{% url 'interpret' %}" name="interpret" class="w3-bar-item w3-button w3-border-bottom">Interpret</a>
-<a href="{% url 'prediction' %}" name="prediction" class="w3-bar-item w3-button w3-border-bottom">Prediction</a>
-</div>
-</body> -->
-
 <style type="text/css">
   
   .project_submit {
@@ -211,7 +94,7 @@ function w3_close() {
     <div>
       <h3 style="text-align: center;color: #f9f0f4; background-color: #1F51E9;">New Project</h3>
         <label style ="color: #e01268">Problem Statement: </label>
-        <input id="problem_name" type="text" name="problem_name">
+        <input id="problem_name" type="text" name="problem_name" required>
         <br><br>
     </div>
     <div><a style ="color: #e01268">Select Problem Type</a>
