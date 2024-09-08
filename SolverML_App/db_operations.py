@@ -9,11 +9,11 @@ import time
 temp_dir = os.path.join(os.getcwd(), 'temp_data')
 
 # Database credentials
-db_host = 'containers-us-west-54.railway.app'
-db_user = 'postgres'
-db_password = 'o2bVJ4hl6dtwI9IyKepf'
-db_name = 'railway'
-db_port = '6560'
+db_host = os.environ.get('PGHOST')
+db_user = os.environ.get('PGUSER')
+db_password = os.environ.get('PGPASSWORD')
+db_name = os.environ.get('PGDATABASE')
+db_port = os.environ.get('PGPORT')
 
 def sql_engine():
     sql_engine = sqlalchemy.create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')

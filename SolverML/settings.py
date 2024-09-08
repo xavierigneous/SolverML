@@ -26,11 +26,10 @@ SECRET_KEY = '0p2m+r7+h2c_hipu)s*$z(!l50^=3j%@2!$e9brh8%ar58jyq3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'solverml-production-9400.up.railway.app']
+ALLOWED_HOSTS = ['127.0.0.1', os.environ.get('RAILWAY_PUBLIC_DOMAIN')]
 # ALLOWED_HOSTS = ['*', 'https://*.railway.app']
 
-CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1', 'https://solverml-production-9400.up.railway.app']
-# CSRF_TRUSTED_ORIGINS = ['*', 'https://*.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1', os.environ.get('RAILWAY_PUBLIC_DOMAIN')]
 
 # Application definition
 
@@ -84,46 +83,13 @@ WSGI_APPLICATION = 'SolverML.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': 'containers-us-west-54.railway.app',
-        'PORT': 6560,
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': 'o2bVJ4hl6dtwI9IyKepf'
+        'NAME': os.environ.get('PGDATABASE'),
+        'USER': os.environ.get('PGUSER'),
+        'PASSWORD': os.environ.get('PGPASSWORD'),
+        'HOST': os.environ.get('PGHOST'),
+        'PORT': os.environ.get('PGPORT')
     }
 }
-
-r'''
-from sshtunnel import SSHTunnelForwarder
-# Connect to a server using the ssh keys. See the sshtunnel documentation for using password authentication
-
-# SSH credentials
-ssh_host = 'ssh.pythonanywhere.com'
-ssh_user = 'vishwanathkannan'
-ssh_password = '9j?k%ud#j@5r!Dk'
-port = 13059
-# Database credentials
-db_host = 'vishwanathkannan-3059.postgres.pythonanywhere-services.com'
-db_user = 'super'
-db_password = 'Vish&1234'
-db_name = 'analytics'
-# SSH tunnel configuration
-tunnel = SSHTunnelForwarder(
-        (ssh_host, 22),
-        ssh_username=ssh_user,
-        ssh_password=ssh_password,
-        remote_bind_address=(db_host, port),
-        local_bind_address=('localhost', port)
-)
-tunnel.start()
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f'postgresql://{db_user}:{db_password}@localhost:{tunnel.local_bind_port}/{db_name}',
-        conn_max_age=600    
-    )
-}
-        
-        
-# r'''
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
