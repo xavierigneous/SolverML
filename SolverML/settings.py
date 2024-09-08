@@ -87,7 +87,7 @@ DATABASES = {
         'NAME': os.environ.get('PGDATABASE'),
         'USER': os.environ.get('PGUSER'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('PGHOST'),
+        'HOST': 'meticulous-empathy.railway.internal',
         'PORT': os.environ.get('PGPORT')
     }
 }
