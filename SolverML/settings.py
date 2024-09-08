@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
-from decouple import config
 import dj_database_url 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -80,15 +79,15 @@ WSGI_APPLICATION = 'SolverML.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 # r'''
 
-print(config("PGHOST", default="db"))
+print(os.environ)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        "HOST": config("PGHOST", default="db"),
-        "USER": config("PGUSER", default="postgres"),
-        "NAME": config("PGDATABASE", default="postgres"),
-        "PASSWORD": config("PGPASSWORD", default="postgres"),
-        "PORT": config("PGPORT", default=5432),
+        'NAME': os.environ.get('PGDATABASE'),
+        'USER': os.environ.get('PGUSER'),
+        'PASSWORD': os.environ.get('PGPASSWORD'),
+        'HOST': os.environ.get('PGHOST'),
+        'PORT': os.environ.get('PGPORT')
     }
 }
 
