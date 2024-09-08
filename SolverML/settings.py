@@ -26,10 +26,10 @@ SECRET_KEY = '0p2m+r7+h2c_hipu)s*$z(!l50^=3j%@2!$e9brh8%ar58jyq3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', os.environ.get('RAILWAY_PUBLIC_DOMAIN')]
+ALLOWED_HOSTS = ['127.0.0.1', os.environ.get('shared.RAILWAY_PUBLIC_DOMAIN')]
 # ALLOWED_HOSTS = ['*', 'https://*.railway.app']
 
-CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1', f"https://{os.environ.get('RAILWAY_PUBLIC_DOMAIN')}"]
+CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1', f"https://{os.environ.get('shared.RAILWAY_PUBLIC_DOMAIN')}"]
 
 # Application definition
 
@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'SolverML.wsgi.application'
 # r'''
 
 print(os.environ)
-print(os.environ.get('PGDATABASE'))
+print(os.environ.get('PGHOST'))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
