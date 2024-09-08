@@ -29,7 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', os.environ.get('RAILWAY_PUBLIC_DOMAIN')]
 # ALLOWED_HOSTS = ['*', 'https://*.railway.app']
 
-CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1', os.environ.get('RAILWAY_PUBLIC_DOMAIN')]
+CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1', f"https://{os.environ.get('RAILWAY_PUBLIC_DOMAIN')}"]
 
 # Application definition
 
@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'SolverML.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 # r'''
 
-
+print(os.environ.get('PGDATABASE'))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
