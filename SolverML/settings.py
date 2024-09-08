@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'SolverML.wsgi.application'
 print(os.environ.get('PGDATABASE'))
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': os.environ.get('PGDATABASE'),
         'USER': os.environ.get('PGUSER'),
         'PASSWORD': os.environ.get('PGPASSWORD'),
